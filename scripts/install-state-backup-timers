@@ -6,17 +6,10 @@ if [[ "$(id -u)" -eq 0 ]]; then SUDO=(); else SUDO=(sudo -n); fi
 
 "${SUDO[@]}" install -o root -g root -m 0755 "$OPERATIONS_ROOT/scripts/backup-state-volumes" /usr/local/libexec/sago-cloud-state-backup
 "${SUDO[@]}" install -o root -g root -m 0755 "$OPERATIONS_ROOT/scripts/verify-state-backups" /usr/local/libexec/sago-cloud-restore-test
-"${SUDO[@]}" install -o root -g root -m 0755 "$OPERATIONS_ROOT/scripts/sync-offsite-backups" /usr/local/libexec/sago-cloud-offsite-backup
 for unit in \
   sago-cloud-state-backup.service sago-cloud-state-backup.timer \
-  sago-cloud-restore-test.service sago-cloud-restore-test.timer \
-  sago-cloud-offsite-backup.service sago-cloud-offsite-backup.timer; do
+  sago-cloud-restore-test.service sago-cloud-restore-test.timer; do
   "${SUDO[@]}" install -o root -g root -m 0644 "$OPERATIONS_ROOT/systemd/$unit" "/etc/systemd/system/$unit"
 done
 "${SUDO[@]}" systemctl daemon-reload
 "${SUDO[@]}" systemctl enable --now sago-cloud-state-backup.timer sago-cloud-restore-test.timer
-if [[ -s "$SECRETS_ROOT/offsite-backup.env" && -s "$SECRETS_ROOT/rclone.conf" ]]; then
-  "${SUDO[@]}" systemctl enable --now sago-cloud-offsite-backup.timer
-else
-  printf 'Offsite timer not enabled until offsite-backup.env and rclone.conf exist.\n'
-fi

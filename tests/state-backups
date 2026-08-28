@@ -4,7 +4,6 @@ set -euo pipefail
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 backup="$repo_root/scripts/backup-state-volumes"
 verify="$repo_root/scripts/verify-state-backups"
-sync="$repo_root/scripts/sync-offsite-backups"
 
 grep -Fq 'compose "$stack" stop' "$backup"
 grep -Fq 'OPERATIONS_ROOT="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"' "$backup"
@@ -13,7 +12,5 @@ grep -Fq 'sago_cloud_obi-data' "$backup"
 grep -Fq 'SAGO_CLOUD_RESTORE_CONFIRMED=yes' "$verify"
 grep -Fq 'http://127.0.0.1:5984/_all_dbs' "$verify"
 grep -Fq 'PRAGMA integrity_check' "$verify"
-grep -Fq '"$BACKUPS_ROOT:backups"' "$sync"
-grep -Fq '"/srv/pr-media:media"' "$sync"
 
-printf 'State backups are consistent, restore-tested, and ready for offsite sync\n'
+printf 'State backups are consistent and restore-tested\n'

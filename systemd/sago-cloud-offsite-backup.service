@@ -1,7 +1,0 @@
-[Unit]
-Description=Copy Sago Cloud backups and media off the VM
-After=docker.service sago-cloud-state-backup.service sago-cloud-pr-media-backup.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/libexec/sago-cloud-offsite-backup
