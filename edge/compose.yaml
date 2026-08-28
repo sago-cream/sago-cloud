@@ -19,6 +19,7 @@ services:
       - /srv/sago-cloud/secrets/proxy.env
     volumes:
       - ./:/etc/caddy:ro
+      - /srv/no-5:/srv/no-5:ro
       - /srv/pr-media:/srv/pr-media:ro
       - caddy-data:/data
       - caddy-config:/config
