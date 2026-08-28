@@ -2,21 +2,18 @@
 set -euo pipefail
 
 homepage_url="${HOMEPAGE_URL:-}"
-obi_url="${OBI_URL:-}"
 media_url="${MEDIA_URL:-}"
 homepage_expected_status="${HOMEPAGE_EXPECTED_STATUS:-200}"
-obi_expected_status="${OBI_EXPECTED_STATUS:-401}"
 media_expected_status="${MEDIA_EXPECTED_STATUS:-404}"
 
 for target in \
   "$homepage_url:$homepage_expected_status" \
-  "$obi_url:$obi_expected_status" \
   "$media_url:$media_expected_status"; do
   url="${target%:*}"
   expected_status="${target##*:}"
 
   if [[ ! "$url" =~ ^https://[^/]+/?$ ]]; then
-    printf 'Set HOMEPAGE_URL, OBI_URL, and MEDIA_URL to HTTPS origins before verifying public ingress.\n' >&2
+    printf 'Set HOMEPAGE_URL and MEDIA_URL to HTTPS origins before verifying public ingress.\n' >&2
     exit 1
   fi
 

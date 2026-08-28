@@ -15,25 +15,6 @@ export const routes = [
 }`,
   },
   {
-    hostname: "<obi-hostname>",
-    tunnelProtocol: "https",
-    caddy: `{$OBI_DOMAIN} {
-\tencode zstd gzip
-\tlog
-
-\theader {
-\t\tReferrer-Policy no-referrer
-\t\tX-Content-Type-Options nosniff
-\t\tX-Frame-Options DENY
-\t\t-Server
-\t}
-
-\treverse_proxy obi:5984 {
-\t\tflush_interval -1
-\t}
-}`,
-  },
-  {
     hostname: "<bot-hostname>",
     tunnelProtocol: "https",
     caddy: `{$DOMAIN} {

@@ -61,21 +61,20 @@ Verify all public paths through Cloudflare:
 
 ```bash
 HOMEPAGE_URL=https://homepage.example.com \
-OBI_URL=https://obi.example.com \
 MEDIA_URL=https://media.example.com \
   scripts/verify-public-ingress
 ```
 
 For continuous verification, copy `env/public-ingress.env.example` to
-`/srv/sago-cloud/secrets/public-ingress.env`, set the three HTTPS origins and
+`/srv/sago-cloud/secrets/public-ingress.env`, set the two HTTPS origins and
 their expected statuses, then run:
 
 ```bash
 scripts/install-public-ingress-timer
 ```
 
-The defaults expect `200` from Homepage, OBI's intentional unauthenticated
-`401`, and `404` from the media hostname root. The timer checks all three paths
+The defaults expect `200` from Homepage and `404` from the media hostname root.
+The timer checks both paths
 every five minutes and records failures in the systemd journal. Cloudflare
 Tunnel health notifications independently report connector degradation or
 failure.
