@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+bun "$OPERATIONS_ROOT/scripts/generate-routing.mjs" --check
 if [[ ! -s "$SECRETS_ROOT/cloudflared/config.yml" || ! -s "$SECRETS_ROOT/cloudflared/credentials.json" ]]; then
   printf 'Create %s/cloudflared/config.yml and credentials.json before deploying the tunnel.\n' "$SECRETS_ROOT" >&2
   exit 1

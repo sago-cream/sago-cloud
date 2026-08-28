@@ -3,6 +3,7 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+bun "$OPERATIONS_ROOT/scripts/generate-routing.mjs" --check
 require_pr_media_mount
 compose_pull edge
 compose_up edge

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+bun scripts/generate-routing.mjs --check
+grep -Fq 'edit config/routes.mjs' edge/Caddyfile
+grep -Fq 'edit config/routes.mjs' env/cloudflared.config.yml.example
+grep -Fq '<no5-hostname>' env/cloudflared.config.yml.example
+
+printf 'Caddy and Tunnel routes match the single route definition\n'
