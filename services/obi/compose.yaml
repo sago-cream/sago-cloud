@@ -17,6 +17,8 @@ services:
       dev.hsichen.sago-cloud.managed: "true"
     env_file:
       - /srv/sago-cloud/secrets/obi.env
+    ports:
+      - "127.0.0.1:5984:5984"
     healthcheck:
       test:
         - CMD-SHELL

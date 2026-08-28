@@ -107,6 +107,16 @@ ssh sago-cloud
 
 Do not expose TCP 22 in the OCI security list.
 
+Obi's CouchDB port is bound only to host loopback. After its first deployment,
+publish it inside the tailnet with Tailscale Serve:
+
+```bash
+sudo tailscale serve --bg http://127.0.0.1:5984
+```
+
+Use the HTTPS URL reported by Tailscale in Obsidian LiveSync. Do not create a
+public DNS record or Cloudflare Tunnel ingress for Obi.
+
 Install the versioned SSH policy with:
 
 ```bash

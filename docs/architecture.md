@@ -36,7 +36,8 @@ Each workload is an independent Docker Compose project:
   has no published host port and no application source in this repository.
 - `homepage` runs the ARM64 Homepage image. Authentication, bookmarks, and
   private wallpaper storage live in Supabase.
-- `obi` runs CouchDB for Obsidian LiveSync.
+- `obi` runs CouchDB for Obsidian LiveSync. Its host port is loopback-only and
+  Tailscale Serve provides HTTPS access inside the tailnet.
 
 Public services attach to `sago_cloud_edge`. Caddy discovers services through role-based network aliases;
 `/bot/*` is the neutral bot route and `/` routes to `bot-core`.
