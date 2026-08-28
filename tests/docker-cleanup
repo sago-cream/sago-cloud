@@ -8,6 +8,7 @@ timer="$repo_root/systemd/sago-cloud-docker-cleanup.timer"
 grep -Fq 'image prune --all --force' "$cleanup"
 grep -Fq 'builder prune --force' "$cleanup"
 grep -Fq 'DOCKER_IMAGE_RETENTION:-720h' "$cleanup"
+grep -Fq 'docker info' "$cleanup"
 if grep -Eq 'volume prune|system prune|container prune' "$cleanup"; then
   printf 'Docker cleanup must not remove volumes or containers.\n' >&2
   exit 1

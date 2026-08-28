@@ -7,6 +7,7 @@ verify="$repo_root/scripts/verify-state-backups"
 sync="$repo_root/scripts/sync-offsite-backups"
 
 grep -Fq 'compose "$stack" stop' "$backup"
+grep -Fq 'OPERATIONS_ROOT="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"' "$backup"
 grep -Fq 'sago_cloud_bot-core-state' "$backup"
 grep -Fq 'sago_cloud_obi-data' "$backup"
 grep -Fq 'SAGO_CLOUD_RESTORE_CONFIRMED=yes' "$verify"

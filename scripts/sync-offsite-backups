@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+BACKUPS_ROOT="${BACKUPS_ROOT:-/srv/sago-cloud/backups}"
+SECRETS_ROOT="${SECRETS_ROOT:-/srv/sago-cloud/secrets}"
+if docker info >/dev/null 2>&1; then DOCKER=(docker); else DOCKER=(sudo -n docker); fi
 
 settings="$SECRETS_ROOT/offsite-backup.env"
 config="$SECRETS_ROOT/rclone.conf"

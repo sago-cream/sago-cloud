@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+if docker info >/dev/null 2>&1; then DOCKER=(docker); else DOCKER=(sudo -n docker); fi
 
 retention="${DOCKER_IMAGE_RETENTION:-720h}"
 if [[ ! "$retention" =~ ^[1-9][0-9]*h$ ]]; then
