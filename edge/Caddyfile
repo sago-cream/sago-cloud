@@ -54,6 +54,32 @@
 	}
 }
 
+http://{$NO5_DOMAIN} {
+	encode zstd gzip
+	log
+
+	header {
+		Cache-Control "private, no-store"
+		Referrer-Policy no-referrer
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		-Server
+	}
+
+	@allowed client_ip {$NO5_ALLOWED_IP}
+
+	handle @allowed {
+		root * /srv/no-5
+		try_files {path} /index.html
+		file_server
+	}
+
+	handle {
+		header Content-Type "text/plain; charset=utf-8"
+		respond "This private site is only available from the No.5 home network." 403
+	}
+}
+
 http://{$MEDIA_DOMAIN} {
 	log
 
