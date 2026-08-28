@@ -90,9 +90,8 @@ The weekly Docker cleanup removes only unused images and build cache older than
 Bot and CouchDB volume backups run daily with the affected stack briefly
 stopped for a consistent snapshot. A weekly restore test imports the newest
 archives into disposable volumes and starts CouchDB against the restored data.
-With `offsite-backup.env` and `rclone.conf` installed, the daily offsite job
-copies those backups plus the complete `/srv/pr-media` tree to the configured
-R2 destination.
+Off-host copies are made separately; no cloud-storage subscription or
+credential is required by this repository.
 
 Media prune and integrity timers run commands inside the published media image.
 Install storage first; a successful media deployment enables the timers.
