@@ -40,6 +40,8 @@ assert_absent services/homepage/compose.yaml 'homepage-migrate'
 
 assert_absent scripts/lib/common.sh 'sago_cloud_postgres-data'
 assert_absent scripts/deploy.mjs '"postgres"'
+assert_contains services/obi/compose.yaml '127.0.0.1:5984:5984'
+assert_absent services/obi/compose.yaml '0.0.0.0:5984:5984'
 
 assert_contains services/minisago-worker/compose.yaml 'name: ${EDGE_NETWORK_NAME:-sago_cloud_edge}'
 assert_absent services/minisago-worker/compose.yaml 'sago_cloud_data'
