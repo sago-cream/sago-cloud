@@ -12,7 +12,6 @@ const allowedServices = new Set([
   "obi",
   "proxy",
   "homepage",
-  "postgres",
 ]);
 const remoteHost = process.env.SAGO_CLOUD_HOST ?? "sago-cloud";
 const remoteDeployRoot =

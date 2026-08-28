@@ -14,12 +14,10 @@ bun run deploy:minisago-worker
 bun run deploy:pr-media-api
 bun run deploy:homepage
 bun run deploy:obi
-bun run deploy:postgres
 bun run status
 ```
 
-`deploy:all` manages the regular stacks. Cloudflare Tunnel deploys separately,
-and the offline legacy PostgreSQL stack requires an explicit deployment.
+`deploy:all` manages the regular stacks. Cloudflare Tunnel deploys separately.
 `deploy:minisago` and `deploy:proxy` remain compatibility aliases.
 
 Application repositories wait for their image workflows and then invoke the
@@ -59,7 +57,6 @@ homepage.env
 minisago-worker.env
 pr-media-api.env
 obi.env
-postgres.env
 public-ingress.env
 ```
 
@@ -67,20 +64,11 @@ Production secrets are never committed.
 
 ## Scheduled jobs
 
-One-shot PostgreSQL work is separate from service definitions:
-
-```text
-/srv/sago-cloud/jobs/postgres/backup
-/srv/sago-cloud/jobs/postgres/verify-backup
-/srv/sago-cloud/jobs/postgres/restore
-```
-
 Install or refresh systemd units after changing the operations checkout:
 
 ```bash
 scripts/install-health-watch-timer
 scripts/install-public-ingress-timer
-scripts/install-postgres-backup-timers
 ```
 
 The health-watch installer copies the watcher and its shell dependency into a
@@ -94,9 +82,6 @@ The watcher finds managed containers through the
 Compose projects.
 
 Container logs rotate at 10 MB with three files retained per service.
-PostgreSQL backups retain seven daily and four weekly dumps under
-`/srv/sago-cloud/backups/postgres`.
-
 Media prune and integrity timers run commands inside the published media image.
 Install storage first; a successful media deployment enables the timers.
 
