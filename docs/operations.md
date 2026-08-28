@@ -70,6 +70,7 @@ Install or refresh systemd units after changing the operations checkout:
 scripts/install-health-watch-timer
 scripts/install-docker-cleanup-timer
 scripts/install-public-ingress-timer
+scripts/install-state-backup-timers
 ```
 
 The health-watch installer copies the watcher and its shell dependency into a
@@ -85,6 +86,13 @@ Compose projects.
 Container logs rotate at 10 MB with three files retained per service.
 The weekly Docker cleanup removes only unused images and build cache older than
 30 days. It never prunes containers, networks, or volumes.
+
+Bot and CouchDB volume backups run daily with the affected stack briefly
+stopped for a consistent snapshot. A weekly restore test imports the newest
+archives into disposable volumes and starts CouchDB against the restored data.
+With `offsite-backup.env` and `rclone.conf` installed, the daily offsite job
+copies those backups plus the complete `/srv/pr-media` tree to the configured
+R2 destination.
 
 Media prune and integrity timers run commands inside the published media image.
 Install storage first; a successful media deployment enables the timers.

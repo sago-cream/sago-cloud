@@ -1,0 +1,7 @@
+[Unit]
+Description=Restore-test Sago Cloud bot and CouchDB backups
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/sago-cloud-restore-test
