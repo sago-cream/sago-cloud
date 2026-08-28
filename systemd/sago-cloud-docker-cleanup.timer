@@ -1,0 +1,10 @@
+[Unit]
+Description=Clean old Sago Cloud Docker images weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 05:00
+Persistent=true
+RandomizedDelaySec=30m
+
+[Install]
+WantedBy=timers.target

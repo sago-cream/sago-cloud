@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+retention="${DOCKER_IMAGE_RETENTION:-720h}"
+if [[ ! "$retention" =~ ^[1-9][0-9]*h$ ]]; then
+  printf 'DOCKER_IMAGE_RETENTION must be a positive number of hours.\n' >&2
+  exit 1
+fi
+
+"${DOCKER[@]}" image prune --all --force --filter "until=$retention"
+"${DOCKER[@]}" builder prune --force --filter "until=$retention"

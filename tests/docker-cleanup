@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+cleanup="$repo_root/scripts/prune-docker-images"
+timer="$repo_root/systemd/sago-cloud-docker-cleanup.timer"
+
+grep -Fq 'image prune --all --force' "$cleanup"
+grep -Fq 'builder prune --force' "$cleanup"
+grep -Fq 'DOCKER_IMAGE_RETENTION:-720h' "$cleanup"
+if grep -Eq 'volume prune|system prune|container prune' "$cleanup"; then
+  printf 'Docker cleanup must not remove volumes or containers.\n' >&2
+  exit 1
+fi
+grep -Fq 'OnCalendar=Sun' "$timer"
+
+printf 'Docker cleanup removes only unused images and build cache older than 30 days\n'

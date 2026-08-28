@@ -68,6 +68,7 @@ Install or refresh systemd units after changing the operations checkout:
 
 ```bash
 scripts/install-health-watch-timer
+scripts/install-docker-cleanup-timer
 scripts/install-public-ingress-timer
 ```
 
@@ -82,6 +83,9 @@ The watcher finds managed containers through the
 Compose projects.
 
 Container logs rotate at 10 MB with three files retained per service.
+The weekly Docker cleanup removes only unused images and build cache older than
+30 days. It never prunes containers, networks, or volumes.
+
 Media prune and integrity timers run commands inside the published media image.
 Install storage first; a successful media deployment enables the timers.
 

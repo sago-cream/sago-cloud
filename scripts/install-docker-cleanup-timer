@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+if [[ "$(id -u)" -eq 0 ]]; then
+  SUDO=()
+else
+  SUDO=(sudo -n)
+fi
+
+"${SUDO[@]}" install -o root -g root -m 0755 \
+  "$OPERATIONS_ROOT/scripts/prune-docker-images" \
+  /usr/local/libexec/sago-cloud-docker-cleanup
+"${SUDO[@]}" install -o root -g root -m 0644 \
+  "$OPERATIONS_ROOT/systemd/sago-cloud-docker-cleanup.service" \
+  /etc/systemd/system/sago-cloud-docker-cleanup.service
+"${SUDO[@]}" install -o root -g root -m 0644 \
+  "$OPERATIONS_ROOT/systemd/sago-cloud-docker-cleanup.timer" \
+  /etc/systemd/system/sago-cloud-docker-cleanup.timer
+"${SUDO[@]}" systemctl daemon-reload
+"${SUDO[@]}" systemctl enable --now sago-cloud-docker-cleanup.timer
+"${SUDO[@]}" systemctl status sago-cloud-docker-cleanup.timer --no-pager
