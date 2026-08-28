@@ -38,7 +38,7 @@ grep -Fq 'trusted_proxies static private_ranges' "$edge_caddyfile"
 grep -Fq 'client_ip_headers CF-Connecting-IP X-Forwarded-For' "$edge_caddyfile"
 grep -Fq 'trusted_proxies_strict' "$edge_caddyfile"
 
-if [[ "$(grep -c $'\tlog' "$edge_caddyfile")" -ne 5 ]]; then
+if [[ "$(grep -c $'\tlog' "$edge_caddyfile")" -ne 4 ]]; then
   printf 'Every public Caddy site must emit access logs with parsed client IPs\n' >&2
   exit 1
 fi
@@ -55,7 +55,6 @@ grep -Fq 'OnUnitActiveSec=5min' "$public_ingress_timer"
 grep -Fq 'RandomizedDelaySec=30s' "$public_ingress_timer"
 grep -Fq 'scripts/verify-public-ingress' "$public_ingress_installer"
 grep -Fq 'HOMEPAGE_EXPECTED_STATUS:-200' "$repo_root/scripts/verify-public-ingress"
-grep -Fq 'OBI_EXPECTED_STATUS:-401' "$repo_root/scripts/verify-public-ingress"
 grep -Fq 'MEDIA_EXPECTED_STATUS:-404' "$repo_root/scripts/verify-public-ingress"
 
 printf 'Cloudflare Tunnel service is public-safe and uses the private edge network\n'

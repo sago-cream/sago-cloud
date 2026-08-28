@@ -7,10 +7,6 @@ ingress:
     service: https://edge:443
     originRequest:
       originServerName: <homepage-hostname>
-  - hostname: <obi-hostname>
-    service: https://edge:443
-    originRequest:
-      originServerName: <obi-hostname>
   - hostname: <bot-hostname>
     service: https://edge:443
     originRequest:

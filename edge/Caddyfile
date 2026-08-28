@@ -19,22 +19,6 @@
 	reverse_proxy homepage:3102
 }
 
-{$OBI_DOMAIN} {
-	encode zstd gzip
-	log
-
-	header {
-		Referrer-Policy no-referrer
-		X-Content-Type-Options nosniff
-		X-Frame-Options DENY
-		-Server
-	}
-
-	reverse_proxy obi:5984 {
-		flush_interval -1
-	}
-}
-
 {$DOMAIN} {
 	encode zstd gzip
 	log
