@@ -1,0 +1,7 @@
+[Unit]
+Description=Remove unused Sago Cloud Docker images older than 30 days
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/sago-cloud-docker-cleanup

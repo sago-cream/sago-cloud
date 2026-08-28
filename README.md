@@ -15,10 +15,9 @@ Cloudflare Tunnel.
 | `pr-media-api` | Deployment for the Sago Media backend image |
 | `edge` | Caddy routing and media serving |
 | `cloudflared` | Outbound-only public ingress |
-| `postgres` | Offline legacy database retained for rollback |
 
 The regular deployment set excludes `cloudflared`, which is cut over
-separately, and the offline legacy `postgres` stack.
+separately.
 
 ## Common commands
 

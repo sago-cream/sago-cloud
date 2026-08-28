@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up Sago Cloud bot and CouchDB state
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/sago-cloud-state-backup

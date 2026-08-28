@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+settings="$SECRETS_ROOT/offsite-backup.env"
+config="$SECRETS_ROOT/rclone.conf"
+if [[ ! -s "$settings" || ! -s "$config" ]]; then
+  printf 'Create offsite-backup.env and rclone.conf under %s.\n' "$SECRETS_ROOT" >&2
+  exit 1
+fi
+
+set -a
+source "$settings"
+set +a
+: "${RCLONE_DESTINATION:?Set RCLONE_DESTINATION in offsite-backup.env}"
+
+for source_and_suffix in "$BACKUPS_ROOT:backups" "/srv/pr-media:media"; do
+  source_path="${source_and_suffix%%:*}"
+  suffix="${source_and_suffix#*:}"
+  "${DOCKER[@]}" run --rm \
+    --volume "$config:/config/rclone.conf:ro" \
+    --volume "$source_path:/source:ro" \
+    rclone/rclone:1.70.3 copy /source "$RCLONE_DESTINATION/$suffix" \
+    --config /config/rclone.conf --checksum --create-empty-src-dirs
+done

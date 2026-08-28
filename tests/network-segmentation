@@ -38,9 +38,8 @@ assert_contains services/homepage/compose.yaml 'name: ${EDGE_NETWORK_NAME:-sago_
 assert_absent services/homepage/compose.yaml 'sago_cloud_data'
 assert_absent services/homepage/compose.yaml 'homepage-migrate'
 
-assert_contains services/postgres/compose.yaml 'name: ${DATA_NETWORK_NAME:-sago_cloud_data}'
-assert_absent services/postgres/compose.yaml 'sago_cloud_edge'
-assert_absent scripts/lib/common.sh 'STACKS=(postgres '
+assert_absent scripts/lib/common.sh 'sago_cloud_postgres-data'
+assert_absent scripts/deploy.mjs '"postgres"'
 
 assert_contains services/minisago-worker/compose.yaml 'name: ${EDGE_NETWORK_NAME:-sago_cloud_edge}'
 assert_absent services/minisago-worker/compose.yaml 'sago_cloud_data'

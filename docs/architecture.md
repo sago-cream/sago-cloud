@@ -37,12 +37,8 @@ Each workload is an independent Docker Compose project:
 - `homepage` runs the ARM64 Homepage image. Authentication, bookmarks, and
   private wallpaper storage live in Supabase.
 - `obi` runs CouchDB for Obsidian LiveSync.
-- `postgres` is an offline legacy PostgreSQL stack excluded from `deploy:all`.
-  Its private volume, verified dump, and recovery commands remain available
-  during the rollback window.
 
-Public services attach to `sago_cloud_edge`. PostgreSQL attaches only to
-`sago_cloud_data`. Caddy discovers services through role-based network aliases;
+Public services attach to `sago_cloud_edge`. Caddy discovers services through role-based network aliases;
 `/bot/*` is the neutral bot route and `/` routes to `bot-core`.
 
 The co-located worker reaches `bot-core` through its private frontend-network

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+backup_dir="$BACKUPS_ROOT/volumes"
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+install -d -m 0700 "$backup_dir"
+
+backup_stack() {
+  local stack="$1"
+  shift
+  local was_running=false
+
+  if [[ -n "$(compose "$stack" ps --status running --quiet)" ]]; then
+    was_running=true
+    compose "$stack" stop
+  fi
+
+  local failed=0
+  local volume
+  for volume in "$@"; do
+    if ! "$OPERATIONS_ROOT/scripts/export-volume" \
+      "$volume" "$backup_dir/${volume#sago_cloud_}-$timestamp.tar.gz"; then
+      failed=1
+      break
+    fi
+  done
+
+  if [[ "$was_running" == true ]]; then
+    compose "$stack" start
+  fi
+
+  return "$failed"
+}
+
+backup_stack bot-core sago_cloud_bot-core-state
+backup_stack obi sago_cloud_obi-data sago_cloud_obi-config
+
+find "$backup_dir" -type f -name '*.tar.gz' -mtime +30 -delete
+printf 'Created consistent bot and CouchDB volume backups in %s\n' "$backup_dir"

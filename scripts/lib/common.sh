@@ -15,7 +15,6 @@ VOLUME_NAMES=(
   sago_cloud_caddy-data
   sago_cloud_caddy-config
   sago_cloud_bot-core-state
-  sago_cloud_postgres-data
   sago_cloud_obi-data
   sago_cloud_obi-config
   sago_cloud_minisago-codex

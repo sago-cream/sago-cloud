@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+backup_dir="$BACKUPS_ROOT/volumes"
+latest() {
+  find "$backup_dir" -maxdepth 1 -type f -name "$1-*.tar.gz" -print | sort | tail -n 1
+}
+
+bot_archive="$(latest bot-core-state)"
+obi_data_archive="$(latest obi-data)"
+obi_config_archive="$(latest obi-config)"
+if [[ -z "$bot_archive" || -z "$obi_data_archive" || -z "$obi_config_archive" ]]; then
+  printf 'A bot-state or CouchDB backup is missing from %s.\n' "$backup_dir" >&2
+  exit 1
+fi
+
+media_archive="$(find "$BACKUPS_ROOT/pr-media" -maxdepth 1 -type f -name 'media-*.sqlite' -print 2>/dev/null | sort | tail -n 1)"
+if [[ -z "$media_archive" ]]; then
+  printf 'A Sago Media state backup is missing.\n' >&2
+  exit 1
+fi
+compose pr-media-api exec -T api bun -e \
+  'import { Database } from "bun:sqlite"; import { unlink } from "node:fs/promises"; const path = `/tmp/media-restore-test-${crypto.randomUUID()}.sqlite`; try { await Bun.write(path, await Bun.stdin.arrayBuffer()); const db = new Database(path, { readonly: true }); if (db.query("PRAGMA integrity_check").get().integrity_check !== "ok") process.exit(1); } finally { await unlink(path).catch(() => {}); }' \
+  <"$media_archive"
+
+suffix="$$"
+bot_volume="sago_cloud_restore_test_bot_$suffix"
+obi_data_volume="sago_cloud_restore_test_obi_data_$suffix"
+obi_config_volume="sago_cloud_restore_test_obi_config_$suffix"
+obi_container="sago-cloud-restore-test-obi-$suffix"
+cleanup() {
+  "${DOCKER[@]}" rm -f "$obi_container" >/dev/null 2>&1 || true
+  "${DOCKER[@]}" volume rm "$bot_volume" "$obi_data_volume" "$obi_config_volume" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+for pair in \
+  "$bot_volume:$bot_archive" \
+  "$obi_data_volume:$obi_data_archive" \
+  "$obi_config_volume:$obi_config_archive"; do
+  volume="${pair%%:*}"
+  archive="${pair#*:}"
+  SAGO_CLOUD_RESTORE_CONFIRMED=yes "$OPERATIONS_ROOT/scripts/import-volume" "$volume" "$archive"
+done
+
+"${DOCKER[@]}" run --rm --volume "$bot_volume:/state:ro" alpine:3.22 \
+  sh -ceu 'test -n "$(find /state -type f -print -quit)"'
+
+"${DOCKER[@]}" run -d --name "$obi_container" \
+  --env-file "$SECRETS_ROOT/obi.env" \
+  --volume "$obi_data_volume:/opt/couchdb/data" \
+  --volume "$obi_config_volume:/opt/couchdb/etc/local.d" \
+  couchdb:3.5.2.1 >/dev/null
+
+for _ in $(seq 1 60); do
+  if "${DOCKER[@]}" exec "$obi_container" sh -ceu \
+    'curl -fsS --user "$COUCHDB_USER:$COUCHDB_PASSWORD" http://127.0.0.1:5984/_all_dbs >/dev/null'; then
+    printf 'Restored and opened the latest bot, CouchDB, and media-state backups.\n'
+    exit 0
+  fi
+  sleep 1
+done
+
+printf 'Restored CouchDB backup did not become healthy.\n' >&2
+exit 1

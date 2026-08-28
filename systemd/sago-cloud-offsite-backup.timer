@@ -1,0 +1,10 @@
+[Unit]
+Description=Copy Sago Cloud backups and media offsite daily
+
+[Timer]
+OnCalendar=*-*-* 04:00
+Persistent=true
+RandomizedDelaySec=30m
+
+[Install]
+WantedBy=timers.target
