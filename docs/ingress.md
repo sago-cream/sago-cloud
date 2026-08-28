@@ -14,7 +14,7 @@ Create a locally managed Tunnel, then place its private files at:
 
 Edit `config/routes.mjs`, then run `bun run generate:routing`. That one route
 definition generates `edge/Caddyfile` and
-`env/cloudflared.config.yml.example`; deployments reject stale generated files.
+`env/cloudflared.config.yml.example`; repository tests reject stale generated files.
 Route each public hostname to
 `https://edge:443` and set `originServerName` to the matching public hostname so
 Caddy's certificate is verified. `cloudflared` and Caddy share the private
