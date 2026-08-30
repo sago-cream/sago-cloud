@@ -7,7 +7,7 @@ and the Sago Drop client belong to their application repositories.
 ## Runtime boundary
 
 The `pr-media-api` stack pulls the versioned
-`ghcr.io/sago-cream/sago-media:v1.0.0` image. Sago Cloud supplies only:
+`ghcr.io/sago-cream/sago-media:v1.2.0` image. Sago Cloud supplies only:
 
 - a dedicated, bounded filesystem at `/srv/pr-media`;
 - runtime secrets and GitHub OAuth configuration;

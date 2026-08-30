@@ -10,7 +10,7 @@ maintenance="$repo_root/scripts/run-pr-media-maintenance"
 backup="$repo_root/scripts/backup-pr-media-state"
 worker_compose="$repo_root/services/minisago-worker/compose.yaml"
 
-grep -Fq 'image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.0.0}' "$compose"
+grep -Fq 'image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.2.0}' "$compose"
 grep -Fq 'read_only: true' "$compose"
 grep -Fq 'user: "10001:10001"' "$compose"
 grep -Fq -- '- ALL' "$compose"
