@@ -54,6 +54,10 @@ assert_contains services/minisago-worker/compose.yaml 'minisago-workspace:/works
 assert_absent services/minisago-worker/compose.yaml 'minisago-github-read:/home/bun/.config/gh-read'
 assert_absent services/minisago-worker/compose.yaml 'minisago-github-write:/home/bun/.config/gh-write'
 
+assert_contains env/pr-media-api.env.example 'MEDIA_ACCESS_NOTIFICATION_URL=http://bot-core:3000/api/internal/media-access-request'
+assert_contains env/pr-media-api.env.example 'MEDIA_ACCESS_NOTIFICATION_SECRET='
+assert_contains env/bot-core.env.example 'MEDIA_ACCESS_NOTIFICATION_SECRET='
+
 assert_contains scripts/lib/common.sh 'NETWORK_NAMES=("$EDGE_NETWORK_NAME" "$DATA_NETWORK_NAME")'
 assert_contains scripts/lib/common.sh 'for network_name in "${NETWORK_NAMES[@]}"'
 

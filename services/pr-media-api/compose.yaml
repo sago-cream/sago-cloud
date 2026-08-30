@@ -8,7 +8,7 @@ x-logging: &default-logging
 
 services:
   api:
-    image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.0.0}
+    image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.2.0}
     user: "10001:10001"
     restart: unless-stopped
     read_only: true

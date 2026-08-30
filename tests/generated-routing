@@ -10,5 +10,7 @@ grep -Fq 'edit config/routes.mjs' env/cloudflared.config.yml.example
 grep -Fq '<no5-hostname>' env/cloudflared.config.yml.example
 grep -Fq '<legacy-media-hostname>' env/cloudflared.config.yml.example
 grep -Fq 'redir https://{$MEDIA_DOMAIN}{uri} 308' edge/Caddyfile
+grep -Fq '@internal path /api/internal/* /bot/api/internal/*' edge/Caddyfile
+grep -Fq 'respond @internal 404' edge/Caddyfile
 
 printf 'Caddy and Tunnel routes match the single route definition\n'

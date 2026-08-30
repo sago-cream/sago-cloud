@@ -3,5 +3,28 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+if [ "$(id -u)" -eq 0 ]; then
+  SUDO=()
+else
+  SUDO=(sudo -n)
+fi
+
+if ! "${SUDO[@]}" test -s "$SECRETS_ROOT/bot-core.env"; then
+  printf 'Create %s/bot-core.env before deploying MiniSago.\n' \
+    "$SECRETS_ROOT" >&2
+  exit 1
+fi
+
+for required_key in \
+  DISCORD_BOT_TOKEN \
+  MINISAGO_CHATBOT_OWNER_USER_ID \
+  MEDIA_ACCESS_NOTIFICATION_SECRET; do
+  if ! "${SUDO[@]}" grep -Eq "^${required_key}=.+$" "$SECRETS_ROOT/bot-core.env"; then
+    printf 'Missing required %s in %s/bot-core.env.\n' \
+      "$required_key" "$SECRETS_ROOT" >&2
+    exit 1
+  fi
+done
+
 compose_pull bot-core
 compose_up bot-core

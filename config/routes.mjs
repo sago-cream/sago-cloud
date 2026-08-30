@@ -26,6 +26,9 @@ export const routes = [
 \t\tX-Content-Type-Options nosniff
 \t}
 
+\t@internal path /api/internal/* /bot/api/internal/*
+\trespond @internal 404
+
 \tredir /bot /bot/ 308
 
 \thandle_path /bot/* {
