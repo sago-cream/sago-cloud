@@ -21,11 +21,13 @@ Caddy's certificate is verified. `cloudflared` and Caddy share the private
 frontend Docker network. No Tunnel identifier, credential, or provider token is
 stored in this repository.
 
-The media hostname is the deliberate exception: route it to `http://edge:80` on
-the same private network. Cloudflare still terminates public HTTPS, while the
-HTTP-only origin avoids a circular first-certificate bootstrap for a hostname
-reachable exclusively through the Tunnel. Because Caddy has no published host
-port, this origin is not reachable outside Docker.
+The current and legacy media hostnames are deliberate exceptions: route them to
+`http://edge:80` on the same private network. Cloudflare still terminates public
+HTTPS, while the HTTP-only origin avoids a circular first-certificate bootstrap
+for hostnames reachable exclusively through the Tunnel. Caddy redirects the
+legacy hostname to the current one with a `308`, which preserves upload methods
+and request bodies. Because Caddy has no published host port, this origin is not
+reachable outside Docker.
 
 Keep the directory traversable by the host deploy user and its files readable
 only by the image's non-root user:
@@ -50,7 +52,7 @@ bypass `/api/*`, authenticated HTML, session-bearing responses, and private
 wallpapers. Preserve the origin's `private` and `no-store` headers.
 
 Use the single free rate-limit rule for both the Homepage wallpaper upload and
-`POST media.hsichen.dev/v1/auth/device`. The production rule allows five
+`POST media.sagocream.com/v1/auth/device`. The production rule allows five
 matching requests per IP every ten seconds, blocking bursts for ten seconds.
 Authenticated media uploads retain their separate service quotas and
 concurrency limit.
