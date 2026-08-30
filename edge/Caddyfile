@@ -103,3 +103,9 @@ http://{$MEDIA_DOMAIN} {
 
 	respond 404
 }
+
+http://{$LEGACY_MEDIA_DOMAIN} {
+	log
+
+	redir https://{$MEDIA_DOMAIN}{uri} 308
+}

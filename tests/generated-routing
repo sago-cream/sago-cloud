@@ -8,5 +8,7 @@ bun scripts/generate-routing.mjs --check
 grep -Fq 'edit config/routes.mjs' edge/Caddyfile
 grep -Fq 'edit config/routes.mjs' env/cloudflared.config.yml.example
 grep -Fq '<no5-hostname>' env/cloudflared.config.yml.example
+grep -Fq '<legacy-media-hostname>' env/cloudflared.config.yml.example
+grep -Fq 'redir https://{$MEDIA_DOMAIN}{uri} 308' edge/Caddyfile
 
 printf 'Caddy and Tunnel routes match the single route definition\n'

@@ -108,4 +108,13 @@ export const routes = [
 \trespond 404
 }`,
   },
+  {
+    hostname: "<legacy-media-hostname>",
+    tunnelProtocol: "http",
+    caddy: `http://{$LEGACY_MEDIA_DOMAIN} {
+\tlog
+
+\tredir https://{$MEDIA_DOMAIN}{uri} 308
+}`,
+  },
 ];

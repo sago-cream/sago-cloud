@@ -15,4 +15,6 @@ ingress:
     service: http://edge:80
   - hostname: <media-hostname>
     service: http://edge:80
+  - hostname: <legacy-media-hostname>
+    service: http://edge:80
   - service: http_status:404
