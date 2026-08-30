@@ -11,6 +11,7 @@ The `pr-media-api` stack pulls the versioned
 
 - a dedicated, bounded filesystem at `/srv/pr-media`;
 - runtime secrets and GitHub OAuth configuration;
+- a private MiniSago endpoint for access-request DMs;
 - private container networking and Caddy routes;
 - health checks and resource limits;
 - systemd schedules that run the image's prune and verify commands.
@@ -36,6 +37,10 @@ then deploy:
 bun run deploy:pr-media-api
 bun run deploy:edge
 ```
+
+Set the same `MEDIA_ACCESS_NOTIFICATION_SECRET` in `pr-media-api.env` and
+`bot-core.env`. Keep `MEDIA_ACCESS_NOTIFICATION_URL` on the private
+`http://bot-core:3000/api/internal/media-access-request` address.
 
 The deployment starts the maintenance timers only after the service health
 check succeeds. Static content is served directly by Caddy with immutable cache

@@ -21,6 +21,8 @@ for required_key in \
   MEDIA_GITHUB_CLIENT_ID \
   MEDIA_GITHUB_CLIENT_SECRET \
   MEDIA_OWNER_GITHUB_ID \
+  MEDIA_ACCESS_NOTIFICATION_URL \
+  MEDIA_ACCESS_NOTIFICATION_SECRET \
   GH_TOKEN; do
   if ! "${SUDO[@]}" grep -Eq "^${required_key}=.+$" "$SECRETS_ROOT/pr-media-api.env"; then
     printf 'Missing required %s in %s/pr-media-api.env.\n' \
@@ -32,6 +34,13 @@ done
 if ! "${SUDO[@]}" grep -Eq '^PR_MEDIA_BASE_URL=https://[^[:space:]]+$' "$SECRETS_ROOT/pr-media-api.env" || \
   ! "${SUDO[@]}" grep -Eq '^MEDIA_PUBLIC_URL=https://[^[:space:]]+$' "$SECRETS_ROOT/pr-media-api.env"; then
   printf 'Media public URLs must use HTTPS.\n' >&2
+  exit 1
+fi
+
+if ! "${SUDO[@]}" grep -Fqx \
+  'MEDIA_ACCESS_NOTIFICATION_URL=http://bot-core:3000/api/internal/media-access-request' \
+  "$SECRETS_ROOT/pr-media-api.env"; then
+  printf 'Media access notifications must use the private bot-core endpoint.\n' >&2
   exit 1
 fi
 

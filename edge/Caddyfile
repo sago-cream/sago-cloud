@@ -28,6 +28,9 @@
 		X-Content-Type-Options nosniff
 	}
 
+	@internal path /api/internal/* /bot/api/internal/*
+	respond @internal 404
+
 	redir /bot /bot/ 308
 
 	handle_path /bot/* {
