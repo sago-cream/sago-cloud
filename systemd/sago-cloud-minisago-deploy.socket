@@ -1,0 +1,14 @@
+[Unit]
+Description=Accept bounded MiniSago deployment requests
+
+[Socket]
+ListenStream=/run/sago-cloud/minisago-deploy.sock
+Accept=yes
+DirectoryMode=0750
+SocketMode=0660
+SocketUser=ubuntu
+SocketGroup=ubuntu
+RemoveOnStop=true
+
+[Install]
+WantedBy=sockets.target

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+OPERATIONS_ROOT="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
+STATE_ROOT="${STATE_ROOT:-/srv/sago-cloud/state}"
+delay_seconds="${MINISAGO_DEPLOY_DELAY_SECONDS:-10}"
+flock_command="${MINISAGO_DEPLOY_FLOCK_COMMAND:-flock}"
+state_dir="$STATE_ROOT/minisago-deploy"
+
+write_status() {
+  local status="$1"
+  local exit_code="${2:-null}"
+  local temporary
+
+  temporary="$(mktemp "$state_dir/.status.XXXXXX")"
+  printf '{"commit":"%s","status":"%s","exitCode":%s,"updatedAt":"%s"}\n' \
+    "$commit" "$status" "$exit_code" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    >"$temporary"
+  mv -f -- "$temporary" "$state_dir/latest.json"
+}
+
+read -r command commit extra || true
+if [[ "$command" != "deploy" || ! "$commit" =~ ^[0-9a-f]{40}$ || -n "${extra:-}" ]]; then
+  printf 'denied invalid-request\n'
+  exit 64
+fi
+
+mkdir -p "$state_dir"
+exec 9>"$state_dir/lock"
+if ! "$flock_command" -n 9; then
+  printf 'busy deployment-in-progress\n'
+  exit 75
+fi
+
+write_status queued
+printf 'accepted %s\n' "$commit"
+
+exec </dev/null
+exec >>"$state_dir/$commit.log" 2>&1
+
+failed() {
+  local exit_code="$?"
+  write_status failed "$exit_code"
+  exit "$exit_code"
+}
+trap failed ERR
+
+sleep "$delay_seconds"
+write_status running
+
+image_tag="sha-$commit"
+BOT_CORE_IMAGE_TAG="$image_tag" \
+MINISAGO_WORKER_IMAGE_TAG="$image_tag" \
+  "$OPERATIONS_ROOT/scripts/deploy-minisago"
+
+trap - ERR
+write_status complete 0
