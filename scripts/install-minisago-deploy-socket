@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+if [[ "$(id -u)" -eq 0 ]]; then
+  SUDO=()
+else
+  SUDO=(sudo -n)
+fi
+
+"${SUDO[@]}" install -o root -g root -m 0755 \
+  "$OPERATIONS_ROOT/scripts/accept-minisago-deploy-request" \
+  /usr/local/libexec/sago-cloud-minisago-deploy
+"${SUDO[@]}" install -d -o ubuntu -g ubuntu -m 0755 \
+  "$STATE_ROOT/minisago-deploy"
+"${SUDO[@]}" install -o root -g root -m 0644 \
+  "$OPERATIONS_ROOT/systemd/sago-cloud-minisago-deploy.socket" \
+  /etc/systemd/system/sago-cloud-minisago-deploy.socket
+"${SUDO[@]}" install -o root -g root -m 0644 \
+  "$OPERATIONS_ROOT/systemd/sago-cloud-minisago-deploy@.service" \
+  /etc/systemd/system/sago-cloud-minisago-deploy@.service
+"${SUDO[@]}" systemctl daemon-reload
+"${SUDO[@]}" systemctl enable --now sago-cloud-minisago-deploy.socket
+"${SUDO[@]}" systemctl status sago-cloud-minisago-deploy.socket --no-pager

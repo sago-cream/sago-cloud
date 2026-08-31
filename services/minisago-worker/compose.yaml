@@ -29,6 +29,7 @@ services:
       - /srv/sago-cloud/secrets/minisago-worker.env
     environment:
       MINISAGO_SANDBOX_URL: http://sandbox:8080
+      MINISAGO_DEPLOY_SOCKET: /run/sago-cloud/minisago-deploy.sock
       MINISAGO_WORKER_ID: oracle
       MINISAGO_WORKER_CAPABILITIES: chat,dev
     depends_on:
@@ -51,6 +52,7 @@ services:
       - minisago-github:/home/bun/.config/gh
       - minisago-state:/var/lib/minisago
       - minisago-workspace:/workspace
+      - /run/sago-cloud/minisago-deploy.sock:/run/sago-cloud/minisago-deploy.sock
 
   sandbox:
     image: ghcr.io/sago-cream/minisago-worker:${MINISAGO_WORKER_IMAGE_TAG:-main}

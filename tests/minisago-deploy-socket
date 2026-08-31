@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+handler="$repo_root/scripts/accept-minisago-deploy-request"
+installer="$repo_root/scripts/install-minisago-deploy-socket"
+socket_unit="$repo_root/systemd/sago-cloud-minisago-deploy.socket"
+service_unit="$repo_root/systemd/sago-cloud-minisago-deploy@.service"
+temporary="$(mktemp -d)"
+trap 'rm -rf -- "$temporary"' EXIT
+
+operations="$temporary/operations"
+state="$temporary/state"
+mkdir -p "$operations/scripts" "$state"
+
+cat >"$operations/scripts/deploy-minisago" <<'SCRIPT'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s %s\n' "$BOT_CORE_IMAGE_TAG" "$MINISAGO_WORKER_IMAGE_TAG"
+SCRIPT
+chmod +x "$operations/scripts/deploy-minisago"
+
+commit=0123456789abcdef0123456789abcdef01234567
+channel_id=1282936453134815275
+response="$(
+  printf 'deploy %s %s\n' "$commit" "$channel_id" |
+    OPERATIONS_ROOT="$operations" \
+      STATE_ROOT="$state" \
+      MINISAGO_DEPLOY_DELAY_SECONDS=0 \
+      MINISAGO_DEPLOY_FLOCK_COMMAND=true \
+      "$handler"
+)"
+
+[[ "$response" == "accepted $commit" ]]
+grep -Fq '"status":"complete"' "$state/minisago-deploy/latest.json"
+grep -Fq "\"channelId\":\"$channel_id\"" "$state/minisago-deploy/latest.json"
+status_mode="$(stat -c '%a' "$state/minisago-deploy/latest.json" 2>/dev/null || stat -f '%Lp' "$state/minisago-deploy/latest.json")"
+[[ "$status_mode" == "644" ]]
+grep -Fq "sha-$commit sha-$commit" "$state/minisago-deploy/$commit.log"
+
+if printf 'deploy main invalid\n' | "$handler" | grep -Fq '^accepted '; then
+  printf 'invalid deployment request was accepted\n' >&2
+  exit 1
+fi
+
+grep -Fqx 'ListenStream=/run/sago-cloud/minisago-deploy.sock' "$socket_unit"
+grep -Fqx 'SocketMode=0660' "$socket_unit"
+grep -Fqx 'User=ubuntu' "$service_unit"
+grep -Fqx 'StandardInput=socket' "$service_unit"
+grep -Fqx 'ExecStart=/usr/local/libexec/sago-cloud-minisago-deploy' "$service_unit"
+grep -Fq '/usr/local/libexec/sago-cloud-minisago-deploy' "$installer"
+
+printf 'MiniSago deployment socket accepts only immutable commits\n'

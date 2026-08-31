@@ -69,6 +69,7 @@ Install or refresh systemd units after changing the operations checkout:
 ```bash
 scripts/install-health-watch-timer
 scripts/install-docker-cleanup-timer
+scripts/install-minisago-deploy-socket
 scripts/install-public-ingress-timer
 scripts/install-state-backup-timers
 ```
@@ -82,6 +83,14 @@ until this installation succeeds.
 The watcher finds managed containers through the
 `dev.hsichen.sago-cloud.managed=true` label, so it works across independent
 Compose projects.
+
+The MiniSago deployment socket accepts one immutable commit from the Oracle
+worker, acknowledges it before the worker restarts, and deploys the matching
+core and worker image tags as a socket-activated service. The request also
+carries the originating Discord thread ID so the bot can report the terminal
+result after restart. Requests cannot supply a command, path, image name, or
+deployment target. Status and logs are stored under
+`/srv/sago-cloud/state/minisago-deploy`.
 
 Container logs rotate at 10 MB with three files retained per service.
 The weekly Docker cleanup removes only unused images and build cache older than

@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 compose="$repo_root/services/minisago-worker/compose.yaml"
+bot_compose="$repo_root/services/bot-core/compose.yaml"
 apparmor="$repo_root/services/minisago-worker/minisago-worker.apparmor"
 seccomp="$repo_root/services/minisago-worker/minisago-worker.seccomp.json"
 deploy="$repo_root/scripts/deploy-minisago-worker"
@@ -10,6 +11,8 @@ deploy="$repo_root/scripts/deploy-minisago-worker"
 grep -Fq 'apparmor=minisago-worker' "$compose"
 grep -Fq 'minisago-worker.seccomp.json' "$compose"
 grep -Fq 'MINISAGO_SANDBOX_URL: http://sandbox:8080' "$compose"
+grep -Fq 'MINISAGO_DEPLOY_SOCKET: /run/sago-cloud/minisago-deploy.sock' "$compose"
+grep -Fq '/run/sago-cloud/minisago-deploy.sock:/run/sago-cloud/minisago-deploy.sock' "$compose"
 grep -Fq "fetch('http://127.0.0.1:8081/health')" "$compose"
 grep -Fq 'MINISAGO_SANDBOX_IMAGE: ghcr.io/sago-cream/minisago-worker:${MINISAGO_WORKER_IMAGE_TAG:-main}' "$compose"
 grep -Fq '/var/run/docker.sock:/var/run/docker.sock' "$compose"
@@ -22,6 +25,8 @@ grep -Fq 'pivot_root,' "$apparmor"
 grep -Fq 'deny network alg,' "$apparmor"
 grep -Fq 'apparmor_parser -r' "$deploy"
 grep -Fq 'install -d -m 0700 /var/lib/minisago-sandbox' "$deploy"
+grep -Fq 'MINISAGO_DEPLOY_STATUS_FILE: /run/sago-cloud/minisago-deploy/latest.json' "$bot_compose"
+grep -Fq '/srv/sago-cloud/state/minisago-deploy:/run/sago-cloud/minisago-deploy:ro' "$bot_compose"
 
 python3 - "$seccomp" <<'PY'
 import json
