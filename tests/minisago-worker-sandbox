@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 compose="$repo_root/services/minisago-worker/compose.yaml"
+bot_compose="$repo_root/services/bot-core/compose.yaml"
 apparmor="$repo_root/services/minisago-worker/minisago-worker.apparmor"
 seccomp="$repo_root/services/minisago-worker/minisago-worker.seccomp.json"
 deploy="$repo_root/scripts/deploy-minisago-worker"
@@ -24,6 +25,8 @@ grep -Fq 'pivot_root,' "$apparmor"
 grep -Fq 'deny network alg,' "$apparmor"
 grep -Fq 'apparmor_parser -r' "$deploy"
 grep -Fq 'install -d -m 0700 /var/lib/minisago-sandbox' "$deploy"
+grep -Fq 'MINISAGO_DEPLOY_STATUS_FILE: /run/sago-cloud/minisago-deploy/latest.json' "$bot_compose"
+grep -Fq '/srv/sago-cloud/state/minisago-deploy:/run/sago-cloud/minisago-deploy:ro' "$bot_compose"
 
 python3 - "$seccomp" <<'PY'
 import json

@@ -12,7 +12,7 @@ fi
 "${SUDO[@]}" install -o root -g root -m 0755 \
   "$OPERATIONS_ROOT/scripts/accept-minisago-deploy-request" \
   /usr/local/libexec/sago-cloud-minisago-deploy
-"${SUDO[@]}" install -d -o ubuntu -g ubuntu -m 0750 \
+"${SUDO[@]}" install -d -o ubuntu -g ubuntu -m 0755 \
   "$STATE_ROOT/minisago-deploy"
 "${SUDO[@]}" install -o root -g root -m 0644 \
   "$OPERATIONS_ROOT/systemd/sago-cloud-minisago-deploy.socket" \

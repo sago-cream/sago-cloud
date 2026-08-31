@@ -86,9 +86,11 @@ Compose projects.
 
 The MiniSago deployment socket accepts one immutable commit from the Oracle
 worker, acknowledges it before the worker restarts, and deploys the matching
-core and worker image tags as a socket-activated service. Requests cannot
-supply a command, path, image name, or deployment target. Status and logs are
-stored under `/srv/sago-cloud/state/minisago-deploy`.
+core and worker image tags as a socket-activated service. The request also
+carries the originating Discord thread ID so the bot can report the terminal
+result after restart. Requests cannot supply a command, path, image name, or
+deployment target. Status and logs are stored under
+`/srv/sago-cloud/state/minisago-deploy`.
 
 Container logs rotate at 10 MB with three files retained per service.
 The weekly Docker cleanup removes only unused images and build cache older than

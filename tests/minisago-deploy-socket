@@ -21,8 +21,9 @@ SCRIPT
 chmod +x "$operations/scripts/deploy-minisago"
 
 commit=0123456789abcdef0123456789abcdef01234567
+channel_id=1282936453134815275
 response="$(
-  printf 'deploy %s\n' "$commit" |
+  printf 'deploy %s %s\n' "$commit" "$channel_id" |
     OPERATIONS_ROOT="$operations" \
       STATE_ROOT="$state" \
       MINISAGO_DEPLOY_DELAY_SECONDS=0 \
@@ -32,9 +33,12 @@ response="$(
 
 [[ "$response" == "accepted $commit" ]]
 grep -Fq '"status":"complete"' "$state/minisago-deploy/latest.json"
+grep -Fq "\"channelId\":\"$channel_id\"" "$state/minisago-deploy/latest.json"
+status_mode="$(stat -c '%a' "$state/minisago-deploy/latest.json" 2>/dev/null || stat -f '%Lp' "$state/minisago-deploy/latest.json")"
+[[ "$status_mode" == "644" ]]
 grep -Fq "sha-$commit sha-$commit" "$state/minisago-deploy/$commit.log"
 
-if printf 'deploy main\n' | "$handler" | grep -Fq '^accepted '; then
+if printf 'deploy main invalid\n' | "$handler" | grep -Fq '^accepted '; then
   printf 'invalid deployment request was accepted\n' >&2
   exit 1
 fi

@@ -19,6 +19,8 @@ services:
       - /srv/sago-cloud/secrets/bot-core.env
     environment:
       GAMER_FORUM_STATE_FILE: /app/state/gamer-forum-state.json
+      MINISAGO_DEPLOY_NOTIFICATION_STATE_FILE: /app/state/minisago-deploy-notifications.json
+      MINISAGO_DEPLOY_STATUS_FILE: /run/sago-cloud/minisago-deploy/latest.json
       MINISAGO_REMINDER_STATE_FILE: /app/state/reminders.json
       X_POST_STATE_FILE: /app/state/x-post-state.json
     healthcheck:
@@ -31,6 +33,7 @@ services:
       start_period: 20s
     volumes:
       - bot-core-state:/app/state
+      - /srv/sago-cloud/state/minisago-deploy:/run/sago-cloud/minisago-deploy:ro
     networks:
       frontend:
         aliases:

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 OPERATIONS_ROOT="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
 STATE_ROOT="${STATE_ROOT:-/srv/sago-cloud/state}"
@@ -13,14 +14,16 @@ write_status() {
   local temporary
 
   temporary="$(mktemp "$state_dir/.status.XXXXXX")"
-  printf '{"commit":"%s","status":"%s","exitCode":%s,"updatedAt":"%s"}\n' \
-    "$commit" "$status" "$exit_code" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  printf '{"commit":"%s","channelId":"%s","status":"%s","exitCode":%s,"updatedAt":"%s"}\n' \
+    "$commit" "$channel_id" "$status" "$exit_code" \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     >"$temporary"
+  chmod 0644 "$temporary"
   mv -f -- "$temporary" "$state_dir/latest.json"
 }
 
-read -r command commit extra || true
-if [[ "$command" != "deploy" || ! "$commit" =~ ^[0-9a-f]{40}$ || -n "${extra:-}" ]]; then
+read -r command commit channel_id extra || true
+if [[ "$command" != "deploy" || ! "$commit" =~ ^[0-9a-f]{40}$ || ! "$channel_id" =~ ^[0-9]{17,20}$ || -n "${extra:-}" ]]; then
   printf 'denied invalid-request\n'
   exit 64
 fi
