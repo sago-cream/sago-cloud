@@ -1,5 +1,5 @@
 [Unit]
-Description=Verify Sago Cloud PR media content hashes
+Description=Verify Sago Cloud media content hashes
 RequiresMountsFor=/srv/pr-media
 
 [Service]

@@ -1,5 +1,5 @@
 [Unit]
-Description=Evict Sago Cloud PR media above its high watermark
+Description=Evict Sago Cloud media above its high watermark
 RequiresMountsFor=/srv/pr-media
 
 [Service]

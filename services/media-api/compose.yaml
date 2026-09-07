@@ -1,3 +1,4 @@
+# Keep the existing project identity to update the deployed container in place.
 name: sago-cloud-pr-media-api
 
 x-logging: &default-logging
@@ -30,7 +31,8 @@ services:
     networks:
       frontend:
         aliases:
-          - pr-media-api
+          - media-api
+          - pr-media-api # Compatibility for the previously deployed edge config.
     healthcheck:
       test:
         - CMD

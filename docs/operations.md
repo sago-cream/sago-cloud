@@ -11,7 +11,7 @@ bun run deploy:cloudflared
 bun run deploy:bot-core
 bun run deploy:minisago
 bun run deploy:minisago-worker
-bun run deploy:pr-media-api
+bun run deploy:media-api
 bun run deploy:obi
 bun run status
 ```
@@ -37,7 +37,7 @@ This creates the runtime symlinks, Docker networks, and external volumes. Media
 requires its own provisioning step before its API stack starts:
 
 ```bash
-bun run install:pr-media
+bun run install:media
 ```
 
 See [Cloudflare ingress](ingress.md) before deploying the Tunnel.
@@ -58,7 +58,9 @@ obi.env
 public-ingress.env
 ```
 
-Production secrets are never committed.
+Production secrets are never committed. For Sago Media, copy
+`env/media-api.env.example` to the existing `pr-media-api.env` secret filename;
+see [legacy media identifiers](media.md#naming-and-existing-installations).
 
 ## Scheduled jobs
 

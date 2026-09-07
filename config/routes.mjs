@@ -77,7 +77,7 @@ export const routes = [
 \t\t\tCache-Control no-store
 \t\t}
 
-\t\treverse_proxy pr-media-api:3000
+\t\treverse_proxy media-api:3000
 \t}
 
 \t@supported_media path_regexp supported_media ^/[0-9a-f]{2}/[0-9a-f]{64}\\.(?:gif|jpeg|jpg|mp4|png|webm|webp)$

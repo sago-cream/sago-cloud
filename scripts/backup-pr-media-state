@@ -9,7 +9,7 @@ fi
 
 operations_root="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
 backups_root="${BACKUPS_ROOT:-/srv/sago-cloud/backups}"
-compose_file="$operations_root/services/pr-media-api/compose.yaml"
+compose_file="$operations_root/services/media-api/compose.yaml"
 DOCKER=("${SUDO[@]}" docker)
 backup_dir="$backups_root/pr-media"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"

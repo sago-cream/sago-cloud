@@ -11,6 +11,6 @@ case "${1:-}" in
 esac
 
 operations_root="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
-compose_file="$operations_root/services/pr-media-api/compose.yaml"
+compose_file="$operations_root/services/media-api/compose.yaml"
 
 docker compose -f "$compose_file" exec -T api "$command"

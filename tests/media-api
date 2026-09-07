@@ -2,28 +2,35 @@
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-compose="$repo_root/services/pr-media-api/compose.yaml"
+compose="$repo_root/services/media-api/compose.yaml"
 caddyfile="$repo_root/edge/Caddyfile"
 installer="$repo_root/scripts/install-pr-media-storage"
-deployer="$repo_root/scripts/deploy-pr-media-api"
+deployer="$repo_root/scripts/deploy-media-api"
 maintenance="$repo_root/scripts/run-pr-media-maintenance"
 backup="$repo_root/scripts/backup-pr-media-state"
 worker_compose="$repo_root/services/minisago-worker/compose.yaml"
 
 grep -Fq 'image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.2.0}' "$compose"
+# Renaming must reuse the existing deployment and keep installed jobs working.
+cmp "$compose" "$repo_root/services/pr-media-api/compose.yaml"
+grep -Fxq 'name: sago-cloud-pr-media-api' "$compose"
+grep -Fq -- '- media-api' "$compose"
+grep -Fq -- '- pr-media-api' "$compose"
+grep -Fq '/srv/sago-cloud/secrets/pr-media-api.env' "$compose"
+grep -Fq '/deploy-media-api" "$@"' "$repo_root/scripts/deploy-pr-media-api"
 grep -Fq 'read_only: true' "$compose"
 grep -Fq 'user: "10001:10001"' "$compose"
 grep -Fq -- '- ALL' "$compose"
 grep -Fq 'no-new-privileges:true' "$compose"
 grep -Fq '/srv/pr-media:/srv/pr-media' "$compose"
-grep -Fq 'reverse_proxy pr-media-api:3000' "$caddyfile"
+grep -Fq 'reverse_proxy media-api:3000' "$caddyfile"
 grep -Fq '@media_api path /v1/* /activate /auth/* /admin /admin/*' "$caddyfile"
 grep -Fq 'Cache-Control no-store' "$caddyfile"
 grep -Fq 'max_size 95000000' "$caddyfile"
 grep -Fq 'gif|jpeg|jpg|mp4|png|webm|webp' "$caddyfile"
 grep -Fq 'run-pr-media-maintenance' "$installer"
 grep -Fq 'chown -R 10001:10001' "$installer"
-grep -Fq 'compose_pull pr-media-api' "$deployer"
+grep -Fq 'compose_pull media-api' "$deployer"
 grep -Fq 'MEDIA_GITHUB_CLIENT_SECRET' "$deployer"
 grep -Fq 'MEDIA_ACCESS_NOTIFICATION_SECRET' "$deployer"
 grep -Fq 'MEDIA_ACCESS_NOTIFICATION_URL=http://bot-core:3000/api/internal/media-access-request' "$deployer"
@@ -43,8 +50,8 @@ if grep -Eq '(^|[[:space:]])(build|ports):' "$compose"; then
   exit 1
 fi
 
-if [ -e "$repo_root/services/pr-media-api/server.ts" ] ||
-  [ -e "$repo_root/services/pr-media-api/Dockerfile" ]; then
+if [ -e "$repo_root/services/media-api/server.ts" ] ||
+  [ -e "$repo_root/services/media-api/Dockerfile" ]; then
   printf 'Media application source must not live in sago-cloud\n' >&2
   exit 1
 fi

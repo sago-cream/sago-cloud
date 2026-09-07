@@ -1,56 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
-
-if [ "$(id -u)" -eq 0 ]; then
-  SUDO=()
-else
-  SUDO=(sudo -n)
-fi
-
-if ! "${SUDO[@]}" test -s "$SECRETS_ROOT/pr-media-api.env"; then
-  printf 'Create %s/pr-media-api.env before deploying the PR media API.\n' \
-    "$SECRETS_ROOT" >&2
-  exit 1
-fi
-
-for required_key in \
-  PR_MEDIA_BASE_URL \
-  MEDIA_PUBLIC_URL \
-  MEDIA_GITHUB_CLIENT_ID \
-  MEDIA_GITHUB_CLIENT_SECRET \
-  MEDIA_OWNER_GITHUB_ID \
-  MEDIA_ACCESS_NOTIFICATION_URL \
-  MEDIA_ACCESS_NOTIFICATION_SECRET \
-  GH_TOKEN; do
-  if ! "${SUDO[@]}" grep -Eq "^${required_key}=.+$" "$SECRETS_ROOT/pr-media-api.env"; then
-    printf 'Missing required %s in %s/pr-media-api.env.\n' \
-      "$required_key" "$SECRETS_ROOT" >&2
-    exit 1
-  fi
-done
-
-if ! "${SUDO[@]}" grep -Eq '^PR_MEDIA_BASE_URL=https://[^[:space:]]+$' "$SECRETS_ROOT/pr-media-api.env" || \
-  ! "${SUDO[@]}" grep -Eq '^MEDIA_PUBLIC_URL=https://[^[:space:]]+$' "$SECRETS_ROOT/pr-media-api.env"; then
-  printf 'Media public URLs must use HTTPS.\n' >&2
-  exit 1
-fi
-
-if ! "${SUDO[@]}" grep -Fqx \
-  'MEDIA_ACCESS_NOTIFICATION_URL=http://bot-core:3000/api/internal/media-access-request' \
-  "$SECRETS_ROOT/pr-media-api.env"; then
-  printf 'Media access notifications must use the private bot-core endpoint.\n' >&2
-  exit 1
-fi
-
-DOCKER=("${SUDO[@]}" docker)
-require_pr_media_mount
-compose_pull pr-media-api
-compose_up pr-media-api
-compose pr-media-api exec -T api \
-  bun -e 'process.exit((await fetch("http://127.0.0.1:3000/health")).ok?0:1)'
-"${SUDO[@]}" systemctl enable --now \
-  sago-cloud-pr-media-backup.timer \
-  sago-cloud-pr-media-prune.timer \
-  sago-cloud-pr-media-verify.timer
+# Compatibility entrypoint for existing product release workflows.
+exec "$(dirname -- "${BASH_SOURCE[0]}")/deploy-media-api" "$@"

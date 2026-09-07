@@ -76,7 +76,7 @@ http://{$MEDIA_DOMAIN} {
 			Cache-Control no-store
 		}
 
-		reverse_proxy pr-media-api:3000
+		reverse_proxy media-api:3000
 	}
 
 	@supported_media path_regexp supported_media ^/[0-9a-f]{2}/[0-9a-f]{64}\.(?:gif|jpeg|jpg|mp4|png|webm|webp)$
