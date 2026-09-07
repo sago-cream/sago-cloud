@@ -1,7 +1,0 @@
-[Unit]
-Description=Evict Sago Cloud PR media above its high watermark
-RequiresMountsFor=/srv/pr-media
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/libexec/sago-cloud-pr-media-maintenance prune

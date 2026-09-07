@@ -10,7 +10,7 @@ Cloudflare Tunnel.
 | --- | --- |
 | `bot-core` | [MiniSago](https://github.com/sago-cream/mini-sago) Discord bot |
 | `minisago-worker` | Always-on Codex worker |
-| `pr-media-api` | [Sago Media](https://github.com/sago-cream/sago-media) backend |
+| `sago-media-api` | [Sago Media](https://github.com/sago-cream/sago-media): Sago Drop uploads, processing, and storage |
 | `obi` | CouchDB for Obsidian LiveSync |
 | `edge` | Caddy routing and media serving |
 | `cloudflared` | Outbound-only public ingress |
@@ -23,7 +23,7 @@ Cloudflare Tunnel.
   secrets, scheduled jobs, backups, and host access
 - [Cloudflare ingress](docs/ingress.md) — Tunnel configuration, caching,
   verification, and proxy trust
-- [Media deployment](docs/pr-media.md) — image, storage, routing, secrets, and
+- [Media deployment](docs/media.md) — image, storage, routing, secrets, and
   maintenance schedules
 - [Migration and rollback](docs/migration.md) — legacy namespace migration,
   host rename, and post-rollback cleanup

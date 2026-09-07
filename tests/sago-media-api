@@ -2,28 +2,28 @@
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-compose="$repo_root/services/pr-media-api/compose.yaml"
+compose="$repo_root/services/sago-media-api/compose.yaml"
 caddyfile="$repo_root/edge/Caddyfile"
-installer="$repo_root/scripts/install-pr-media-storage"
-deployer="$repo_root/scripts/deploy-pr-media-api"
-maintenance="$repo_root/scripts/run-pr-media-maintenance"
-backup="$repo_root/scripts/backup-pr-media-state"
+installer="$repo_root/scripts/install-sago-media-storage"
+deployer="$repo_root/scripts/deploy-sago-media-api"
+maintenance="$repo_root/scripts/run-sago-media-maintenance"
+backup="$repo_root/scripts/backup-sago-media-state"
 worker_compose="$repo_root/services/minisago-worker/compose.yaml"
 
-grep -Fq 'image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.2.0}' "$compose"
+grep -Fq 'image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v2.0.0}' "$compose"
 grep -Fq 'read_only: true' "$compose"
 grep -Fq 'user: "10001:10001"' "$compose"
 grep -Fq -- '- ALL' "$compose"
 grep -Fq 'no-new-privileges:true' "$compose"
-grep -Fq '/srv/pr-media:/srv/pr-media' "$compose"
-grep -Fq 'reverse_proxy pr-media-api:3000' "$caddyfile"
+grep -Fq '/srv/sago-media:/srv/sago-media' "$compose"
+grep -Fq 'reverse_proxy sago-media-api:3000' "$caddyfile"
 grep -Fq '@media_api path /v1/* /activate /auth/* /admin /admin/*' "$caddyfile"
 grep -Fq 'Cache-Control no-store' "$caddyfile"
 grep -Fq 'max_size 95000000' "$caddyfile"
 grep -Fq 'gif|jpeg|jpg|mp4|png|webm|webp' "$caddyfile"
-grep -Fq 'run-pr-media-maintenance' "$installer"
+grep -Fq 'run-sago-media-maintenance' "$installer"
 grep -Fq 'chown -R 10001:10001' "$installer"
-grep -Fq 'compose_pull pr-media-api' "$deployer"
+grep -Fq 'compose_pull sago-media-api' "$deployer"
 grep -Fq 'MEDIA_GITHUB_CLIENT_SECRET' "$deployer"
 grep -Fq 'MEDIA_ACCESS_NOTIFICATION_SECRET' "$deployer"
 grep -Fq 'MEDIA_ACCESS_NOTIFICATION_URL=http://bot-core:3000/api/internal/media-access-request' "$deployer"
@@ -35,29 +35,29 @@ grep -Fq 'exec -T api "$command"' "$maintenance"
 grep -Fq 'db.serialize()' "$backup"
 grep -Fq 'PRAGMA integrity_check' "$backup"
 grep -Fq 'await Bun.write(path, bytes)' "$backup"
-grep -Fq 'sago-cloud-pr-media-backup.timer' "$deployer"
-grep -Fq 'sago-cloud-pr-media-backup.timer' "$installer"
+grep -Fq 'sago-cloud-media-backup.timer' "$deployer"
+grep -Fq 'sago-cloud-media-backup.timer' "$installer"
 
 if grep -Eq '(^|[[:space:]])(build|ports):' "$compose"; then
   printf 'Media deployment must pull an image and publish no host ports\n' >&2
   exit 1
 fi
 
-if [ -e "$repo_root/services/pr-media-api/server.ts" ] ||
-  [ -e "$repo_root/services/pr-media-api/Dockerfile" ]; then
+if [ -e "$repo_root/services/sago-media-api/server.ts" ] ||
+  [ -e "$repo_root/services/sago-media-api/Dockerfile" ]; then
   printf 'Media application source must not live in sago-cloud\n' >&2
   exit 1
 fi
 
 if find "$repo_root/scripts" -maxdepth 1 -type f \
-  \( -name 'pr-media-upload' -o -name 'pr-media-optimize' -o \
-  -name 'pr-media-pin' -o -name 'pr-media-prune' -o \
-  -name 'pr-media-verify' -o -name 'pr-media-token' \) | grep -q .; then
+  \( -name 'sago-media-upload' -o -name 'sago-media-optimize' -o \
+  -name 'sago-media-pin' -o -name 'sago-media-prune' -o \
+  -name 'sago-media-verify' -o -name 'sago-media-token' \) | grep -q .; then
   printf 'Media product commands must not live in sago-cloud\n' >&2
   exit 1
 fi
 
-if grep -Fq '/srv/pr-media' "$worker_compose"; then
+if grep -Fq '/srv/sago-media' "$worker_compose"; then
   printf 'The Codex worker must use the media API instead of host storage\n' >&2
   exit 1
 fi

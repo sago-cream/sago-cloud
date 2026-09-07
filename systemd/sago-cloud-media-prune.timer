@@ -1,5 +1,5 @@
 [Unit]
-Description=Check Sago Cloud PR media high watermark daily
+Description=Check Sago Cloud media high watermark daily
 
 [Timer]
 OnCalendar=daily

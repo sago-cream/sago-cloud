@@ -1,4 +1,4 @@
-name: sago-cloud-pr-media-api
+name: sago-cloud-media-api
 
 x-logging: &default-logging
   driver: json-file
@@ -8,7 +8,7 @@ x-logging: &default-logging
 
 services:
   api:
-    image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v1.2.0}
+    image: ${MEDIA_IMAGE:-ghcr.io/sago-cream/sago-media:v2.0.0}
     user: "10001:10001"
     restart: unless-stopped
     read_only: true
@@ -22,15 +22,15 @@ services:
     labels:
       dev.hsichen.sago-cloud.managed: "true"
     env_file:
-      - /srv/sago-cloud/secrets/pr-media-api.env
+      - /srv/sago-cloud/secrets/sago-media-api.env
     volumes:
-      - /srv/pr-media:/srv/pr-media
+      - /srv/sago-media:/srv/sago-media
     tmpfs:
       - /tmp:size=256m,mode=1777
     networks:
       frontend:
         aliases:
-          - pr-media-api
+          - sago-media-api
     healthcheck:
       test:
         - CMD

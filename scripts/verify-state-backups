@@ -24,12 +24,12 @@ if [[ -z "$bot_archive" || -z "$obi_data_archive" || -z "$obi_config_archive" ]]
   exit 1
 fi
 
-media_archive="$(find "$BACKUPS_ROOT/pr-media" -maxdepth 1 -type f -name 'media-*.sqlite' -print 2>/dev/null | sort | tail -n 1)"
+media_archive="$(find "$BACKUPS_ROOT/sago-media" -maxdepth 1 -type f -name 'media-*.sqlite' -print 2>/dev/null | sort | tail -n 1)"
 if [[ -z "$media_archive" ]]; then
   printf 'A Sago Media state backup is missing.\n' >&2
   exit 1
 fi
-compose pr-media-api exec -T api bun -e \
+compose sago-media-api exec -T api bun -e \
   'import { Database } from "bun:sqlite"; import { unlink } from "node:fs/promises"; const path = `/tmp/media-restore-test-${crypto.randomUUID()}.sqlite`; try { await Bun.write(path, await Bun.stdin.arrayBuffer()); const db = new Database(path, { readonly: true }); if (db.query("PRAGMA integrity_check").get().integrity_check !== "ok") process.exit(1); } finally { await unlink(path).catch(() => {}); }' \
   <"$media_archive"
 

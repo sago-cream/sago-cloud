@@ -9,9 +9,9 @@ fi
 
 operations_root="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
 backups_root="${BACKUPS_ROOT:-/srv/sago-cloud/backups}"
-compose_file="$operations_root/services/pr-media-api/compose.yaml"
+compose_file="$operations_root/services/sago-media-api/compose.yaml"
 DOCKER=("${SUDO[@]}" docker)
-backup_dir="$backups_root/pr-media"
+backup_dir="$backups_root/sago-media"
 timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
 destination="$backup_dir/media-$timestamp.sqlite"
 temporary="$(mktemp "${TMPDIR:-/tmp}/sago-media-state.XXXXXX")"
@@ -19,7 +19,7 @@ trap 'rm -f -- "$temporary"' EXIT
 
 "${SUDO[@]}" install -d -o root -g root -m 0700 "$backup_dir"
 "${DOCKER[@]}" compose -f "$compose_file" exec -T api bun -e \
-  'import { Database } from "bun:sqlite"; const db = new Database("/srv/pr-media/.service/media.sqlite", { readonly: true }); process.stdout.write(Buffer.from(db.serialize()));' \
+  'import { Database } from "bun:sqlite"; const db = new Database("/srv/sago-media/.service/media.sqlite", { readonly: true }); process.stdout.write(Buffer.from(db.serialize()));' \
   >"$temporary"
 
 "${DOCKER[@]}" compose -f "$compose_file" exec -T api bun -e \

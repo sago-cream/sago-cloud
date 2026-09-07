@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-}" in
+  prune) command=sago-media-prune ;;
+  verify) command=sago-media-verify ;;
+  *)
+    printf 'Usage: run-sago-media-maintenance prune|verify\n' >&2
+    exit 2
+    ;;
+esac
+
+operations_root="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
+compose_file="$operations_root/services/sago-media-api/compose.yaml"
+
+docker compose -f "$compose_file" exec -T api "$command"

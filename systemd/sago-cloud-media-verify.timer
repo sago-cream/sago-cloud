@@ -1,5 +1,5 @@
 [Unit]
-Description=Verify Sago Cloud PR media content hashes weekly
+Description=Verify Sago Cloud media content hashes weekly
 
 [Timer]
 OnCalendar=Sun *-*-* 04:00
