@@ -1,6 +1,6 @@
 # Cloudflare Ingress
 
-Cloudflare Tunnel is the only public ingress path. Caddy has no published host
+Cloudflare Tunnel is the only public ingress path for Oracle services. Caddy has no published host
 ports after cutover, while Tailscale remains the administrative path.
 
 ## Tunnel configuration
@@ -47,13 +47,12 @@ bun run deploy:cloudflared
 
 ## Caching and rate limits
 
-Cache only immutable Homepage assets such as `/_next/static/*`. Explicitly
-bypass `/api/*`, authenticated HTML, session-bearing responses, and private
-wallpapers. Preserve the origin's `private` and `no-store` headers.
+Homepage now runs on Vercel and its DNS record is not proxied through Cloudflare.
+Remove Homepage-specific cache and upload rules after its DNS cutover.
 
-Use the single free rate-limit rule for both the Homepage wallpaper upload and
-`POST media.sagocream.com/v1/auth/device`. The production rule allows five
-matching requests per IP every ten seconds, blocking bursts for ten seconds.
+Use the free rate-limit rule for `POST media.sagocream.com/v1/auth/device`.
+The production rule allows five matching requests per IP every ten seconds,
+blocking bursts for ten seconds.
 Authenticated media uploads retain their separate service quotas and
 concurrency limit.
 
@@ -62,21 +61,20 @@ concurrency limit.
 Verify all public paths through Cloudflare:
 
 ```bash
-HOMEPAGE_URL=https://homepage.example.com \
 MEDIA_URL=https://media.example.com \
   scripts/verify-public-ingress
 ```
 
 For continuous verification, copy `env/public-ingress.env.example` to
-`/srv/sago-cloud/secrets/public-ingress.env`, set the two HTTPS origins and
-their expected statuses, then run:
+`/srv/sago-cloud/secrets/public-ingress.env`, set the media HTTPS origin and
+its expected status, then run:
 
 ```bash
 scripts/install-public-ingress-timer
 ```
 
-The defaults expect `200` from Homepage and `404` from the media hostname root.
-The timer checks both paths
+The default expects `404` from the media hostname root.
+The timer checks this path
 every five minutes and records failures in the systemd journal. Cloudflare
 Tunnel health notifications independently report connector degradation or
 failure.
