@@ -11,7 +11,6 @@ const allowedServices = new Set([
   "pr-media-api",
   "obi",
   "proxy",
-  "homepage",
 ]);
 const remoteHost = process.env.SAGO_CLOUD_HOST ?? "sago-cloud";
 const remoteDeployRoot =

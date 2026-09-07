@@ -1,20 +1,5 @@
 export const routes = [
   {
-    hostname: "<homepage-hostname>",
-    tunnelProtocol: "https",
-    caddy: `{$HOMEPAGE_DOMAIN} {
-\tencode zstd gzip
-\tlog
-
-\theader {
-\t\tReferrer-Policy no-referrer
-\t\tX-Content-Type-Options nosniff
-\t}
-
-\treverse_proxy homepage:3102
-}`,
-  },
-  {
     hostname: "<bot-hostname>",
     tunnelProtocol: "https",
     caddy: `{$DOMAIN} {

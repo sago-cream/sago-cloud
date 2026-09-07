@@ -12,7 +12,6 @@
     "deploy:minisago": "bun scripts/deploy.mjs minisago",
     "deploy:minisago-worker": "bun scripts/deploy.mjs minisago-worker",
     "deploy:obi": "bun scripts/deploy.mjs obi",
-    "deploy:homepage": "bun scripts/deploy.mjs homepage",
     "generate:routing": "bun scripts/generate-routing.mjs",
     "install:health-watch": "ssh sago-cloud /srv/sago-cloud/operations/scripts/install-health-watch-timer",
     "install:minisago-deploy": "ssh sago-cloud /srv/sago-cloud/operations/scripts/install-minisago-deploy-socket",

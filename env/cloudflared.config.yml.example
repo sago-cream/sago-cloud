@@ -3,10 +3,6 @@ tunnel: <tunnel-id>
 credentials-file: /etc/cloudflared/credentials.json
 
 ingress:
-  - hostname: <homepage-hostname>
-    service: https://edge:443
-    originRequest:
-      originServerName: <homepage-hostname>
   - hostname: <bot-hostname>
     service: https://edge:443
     originRequest:

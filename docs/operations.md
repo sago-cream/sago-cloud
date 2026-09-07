@@ -12,7 +12,6 @@ bun run deploy:bot-core
 bun run deploy:minisago
 bun run deploy:minisago-worker
 bun run deploy:pr-media-api
-bun run deploy:homepage
 bun run deploy:obi
 bun run status
 ```
@@ -53,7 +52,6 @@ proxy.env
 cloudflared/config.yml
 cloudflared/credentials.json
 bot-core.env
-homepage.env
 minisago-worker.env
 pr-media-api.env
 obi.env
