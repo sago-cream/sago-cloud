@@ -38,7 +38,7 @@ if [ -d "$media_root" ]; then
   if [ -d "$media_root/.pins" ]; then
     pin_count="$(find "$media_root/.pins" -type f | wc -l | tr -d ' ')"
   fi
-  printf 'objects: %s, PR references: %s, pins: %s\n' \
+  printf 'objects: %s, retention references: %s, pins: %s\n' \
     "$media_count" "$reference_count" "$pin_count"
 fi
 
