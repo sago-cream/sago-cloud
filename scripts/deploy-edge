@@ -3,7 +3,7 @@ set -euo pipefail
 
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
-require_pr_media_mount
+require_media_mount
 compose_pull edge
 compose_up edge
 compose edge exec -T edge caddy validate --config /etc/caddy/Caddyfile

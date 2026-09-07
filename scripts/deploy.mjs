@@ -8,8 +8,7 @@ const allowedServices = new Set([
   "bot-core",
   "minisago",
   "minisago-worker",
-  "media-api",
-  "pr-media-api",
+  "sago-media-api",
   "obi",
   "proxy",
 ]);
@@ -18,7 +17,6 @@ const remoteDeployRoot =
   process.env.SAGO_CLOUD_OPERATIONS_ROOT ?? "/srv/sago-cloud/operations";
 
 const deployTargets = {
-  "pr-media-api": "media-api",
   proxy: "edge",
 };
 

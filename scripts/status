@@ -9,4 +9,4 @@ for stack in "${STACKS[@]}"; do
 done
 
 printf '\n'
-"$OPERATIONS_ROOT/scripts/pr-media-status"
+"$OPERATIONS_ROOT/scripts/sago-media-status"

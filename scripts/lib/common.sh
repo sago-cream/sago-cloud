@@ -10,7 +10,7 @@ STATE_ROOT="${STATE_ROOT:-"$SAGO_CLOUD_ROOT/state"}"
 EDGE_NETWORK_NAME="${EDGE_NETWORK_NAME:-sago_cloud_edge}"
 DATA_NETWORK_NAME="${DATA_NETWORK_NAME:-sago_cloud_data}"
 NETWORK_NAMES=("$EDGE_NETWORK_NAME" "$DATA_NETWORK_NAME")
-STACKS=(bot-core obi minisago-worker media-api edge)
+STACKS=(bot-core obi minisago-worker sago-media-api edge)
 VOLUME_NAMES=(
   sago_cloud_caddy-data
   sago_cloud_caddy-config
@@ -71,18 +71,21 @@ compose_pull() {
 
 compose_up() {
   local stack="$1"
+  case "$stack" in
+    sago-media-api | edge) require_media_mount ;;
+  esac
   ensure_docker_networks
   ensure_docker_volumes
   compose "$stack" up -d --remove-orphans
   "${DOCKER[@]}" image prune --force --filter dangling=true >/dev/null
 }
 
-require_pr_media_mount() {
-  local media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
+require_media_mount() {
+  local media_root="${MEDIA_ROOT:-/srv/sago-media}"
   local mounted_source
 
   mounted_source="$(findmnt -rn -o SOURCE --mountpoint "$media_root")" || {
-    printf '%s must be a dedicated mount; run scripts/install-pr-media-storage first.\n' \
+    printf '%s must be a dedicated mount; run scripts/install-sago-media-storage first.\n' \
       "$media_root" >&2
     return 1
   }

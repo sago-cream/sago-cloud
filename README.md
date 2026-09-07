@@ -10,7 +10,7 @@ Cloudflare Tunnel.
 | --- | --- |
 | `bot-core` | [MiniSago](https://github.com/sago-cream/mini-sago) Discord bot |
 | `minisago-worker` | Always-on Codex worker |
-| `media-api` | [Sago Media](https://github.com/sago-cream/sago-media): Sago Drop uploads, processing, and storage |
+| `sago-media-api` | [Sago Media](https://github.com/sago-cream/sago-media): Sago Drop uploads, processing, and storage |
 | `obi` | CouchDB for Obsidian LiveSync |
 | `edge` | Caddy routing and media serving |
 | `cloudflared` | Outbound-only public ingress |

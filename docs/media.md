@@ -30,10 +30,10 @@ limit request bodies to [4.5 MB](https://vercel.com/docs/functions/limitations).
 
 ## Runtime boundary
 
-The `media-api` stack pulls the versioned
-`ghcr.io/sago-cream/sago-media:v1.2.0` image. Sago Cloud supplies only:
+The `sago-media-api` stack pulls the versioned
+`ghcr.io/sago-cream/sago-media:v2.0.0` image. Sago Cloud supplies only:
 
-- a dedicated, bounded filesystem at `/srv/pr-media`;
+- a dedicated, bounded filesystem at `/srv/sago-media`;
 - runtime secrets and GitHub OAuth configuration;
 - a private MiniSago endpoint for access-request DMs;
 - private container networking and Caddy routes;
@@ -53,16 +53,16 @@ Create the bounded 10 GiB ext4 filesystem once:
 bun run install:media
 ```
 
-Copy `env/media-api.env.example` to
-`/srv/sago-cloud/secrets/pr-media-api.env`, fill in the OAuth and owner values,
+Copy `env/sago-media-api.env.example` to
+`/srv/sago-cloud/secrets/sago-media-api.env`, fill in the OAuth and owner values,
 then deploy:
 
 ```bash
-bun run deploy:media-api
+bun run deploy:sago-media-api
 bun run deploy:edge
 ```
 
-Set the same `MEDIA_ACCESS_NOTIFICATION_SECRET` in `pr-media-api.env` and
+Set the same `MEDIA_ACCESS_NOTIFICATION_SECRET` in `sago-media-api.env` and
 `bot-core.env`. Keep `MEDIA_ACCESS_NOTIFICATION_URL` on the private
 `http://bot-core:3000/api/internal/media-access-request` address.
 
@@ -74,33 +74,25 @@ headers; API, login, activation, and admin routes are proxied without caching.
 
 ```bash
 bun run status
-ssh sago-cloud systemctl status sago-cloud-pr-media-prune.timer
-ssh sago-cloud systemctl status sago-cloud-pr-media-verify.timer
-ssh sago-cloud systemctl status sago-cloud-pr-media-backup.timer
+ssh sago-cloud systemctl status sago-cloud-media-prune.timer
+ssh sago-cloud systemctl status sago-cloud-media-verify.timer
+ssh sago-cloud systemctl status sago-cloud-media-backup.timer
 ```
 
-The timers execute `pr-media-prune` and `pr-media-verify` inside the running
+The timers execute `sago-media-prune` and `sago-media-verify` inside the running
 product container. Their implementation and retention policy therefore remain
 versioned with the product image, while Sago Cloud owns when and where they run.
 The backup timer serializes and verifies `.service/media.sqlite` into
-`/srv/sago-cloud/backups/pr-media`.
+`/srv/sago-cloud/backups/sago-media`.
 
-## Naming and existing installations
+## Release and upgrade
 
-The deployment target and network alias are `media-api`; the product and image
-are **Sago Media**. Use `bun run deploy:media-api` and `bun run install:media`.
-The old deployment command remains an alias for existing release workflows.
+The deployment is `sago-media-api`, product commands are `sago-media-*`, and
+configuration uses `MEDIA_*`. The image is pinned to version 2.0.0, which must be
+published by Sago Media before this infrastructure change is deployed.
 
-Some implementation identifiers intentionally remain compatible with the
-published image and provisioned host: `PR_MEDIA_*` environment variables,
-`pr-media-*` commands, `/srv/pr-media`, the `sago-cloud-pr-media-api` Compose
-project, `pr-media-api.env` production secret file, existing systemd unit names,
-and the `backups/pr-media` directory. These are legacy names, not a PR feature.
-The new `env/media-api.env.example` still populates that existing secret file.
-No data move, secret rename, filesystem recreation, or timer reinstall is needed.
-
-Deploy `media-api` before `edge` when applying this rename. The container retains
-its old network alias as well as the new one so the existing edge configuration
-continues to work during the transition. The old `services/pr-media-api` path remains a symlink to `media-api`, so
-previously installed maintenance and backup scripts continue to find the same
-Compose project without a reinstall.
+Existing installations must follow [the 2.0 migration](media-migration.md).
+The migration moves the existing filesystem and SQLite state, renames secrets
+and scheduled jobs, and replaces the old Compose project. It includes a
+maintenance window and rollback procedure. There are no runtime aliases for the
+old names. Public hostnames, HTTP endpoints, and media hashes remain unchanged.

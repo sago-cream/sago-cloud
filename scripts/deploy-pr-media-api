@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Compatibility entrypoint for existing product release workflows.
-exec "$(dirname -- "${BASH_SOURCE[0]}")/deploy-media-api" "$@"

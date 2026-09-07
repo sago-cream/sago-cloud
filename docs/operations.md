@@ -11,7 +11,7 @@ bun run deploy:cloudflared
 bun run deploy:bot-core
 bun run deploy:minisago
 bun run deploy:minisago-worker
-bun run deploy:media-api
+bun run deploy:sago-media-api
 bun run deploy:obi
 bun run status
 ```
@@ -53,14 +53,14 @@ cloudflared/config.yml
 cloudflared/credentials.json
 bot-core.env
 minisago-worker.env
-pr-media-api.env
+sago-media-api.env
 obi.env
 public-ingress.env
 ```
 
 Production secrets are never committed. For Sago Media, copy
-`env/media-api.env.example` to the existing `pr-media-api.env` secret filename;
-see [legacy media identifiers](media.md#naming-and-existing-installations).
+`env/sago-media-api.env.example` to `sago-media-api.env`.
+Existing media installations require [the 2.0 migration](media-migration.md).
 
 ## Scheduled jobs
 

@@ -9,15 +9,20 @@ else
   SUDO=(sudo -n)
 fi
 
-media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
-media_image="${PR_MEDIA_IMAGE:-$STATE_ROOT/pr-media.ext4}"
-media_size_bytes="${PR_MEDIA_SIZE_BYTES:-10737418240}"
+if [ -e /srv/pr-media ] || [ -e "$STATE_ROOT/pr-media.ext4" ]; then
+  printf 'Migrate the existing media installation using docs/media-migration.md first.\n' >&2
+  exit 1
+fi
+
+media_root="${MEDIA_ROOT:-/srv/sago-media}"
+media_image="${MEDIA_STORAGE_IMAGE:-$STATE_ROOT/sago-media.ext4}"
+media_size_bytes="${MEDIA_SIZE_BYTES:-10737418240}"
 fstab_entry="$media_image $media_root ext4 loop,nofail,nodev,nosuid,noexec,discard 0 0"
 
 case "$media_root" in
   /srv/*) ;;
   *)
-    printf 'PR_MEDIA_ROOT must be a path below /srv.\n' >&2
+    printf 'MEDIA_ROOT must be a path below /srv.\n' >&2
     exit 1
     ;;
 esac
@@ -25,13 +30,13 @@ esac
 case "$media_image" in
   "$STATE_ROOT"/*) ;;
   *)
-    printf 'PR_MEDIA_IMAGE must be a path below %s.\n' "$STATE_ROOT" >&2
+    printf 'MEDIA_STORAGE_IMAGE must be a path below %s.\n' "$STATE_ROOT" >&2
     exit 1
     ;;
 esac
 
 if ! [[ "$media_size_bytes" =~ ^[0-9]+$ ]] || [ "$media_size_bytes" -lt 1073741824 ]; then
-  printf 'PR_MEDIA_SIZE_BYTES must be an integer of at least 1 GiB.\n' >&2
+  printf 'MEDIA_SIZE_BYTES must be an integer of at least 1 GiB.\n' >&2
   exit 1
 fi
 
@@ -40,7 +45,7 @@ fi
 if ! "${SUDO[@]}" test -e "$media_image"; then
   "${SUDO[@]}" truncate -s "$media_size_bytes" "$media_image"
   "${SUDO[@]}" chmod 0600 "$media_image"
-  "${SUDO[@]}" mkfs.ext4 -F -m 0 -L sago-pr-media "$media_image"
+  "${SUDO[@]}" mkfs.ext4 -F -m 0 -L sago-media "$media_image"
 elif [ "$("${SUDO[@]}" stat -c %s "$media_image")" -ne "$media_size_bytes" ]; then
   printf 'Existing media image has a different size; refusing to resize it automatically.\n' >&2
   exit 1
@@ -77,33 +82,33 @@ fi
 "${SUDO[@]}" chmod 0755 "$media_root"
 "${SUDO[@]}" install -d -o root -g root -m 0755 /etc/systemd/system/docker.service.d
 "${SUDO[@]}" install -o root -g root -m 0755 \
-  "$OPERATIONS_ROOT/scripts/run-pr-media-maintenance" \
-  /usr/local/libexec/sago-cloud-pr-media-maintenance
+  "$OPERATIONS_ROOT/scripts/run-sago-media-maintenance" \
+  /usr/local/libexec/sago-cloud-media-maintenance
 "${SUDO[@]}" install -o root -g root -m 0755 \
-  "$OPERATIONS_ROOT/scripts/backup-pr-media-state" \
-  /usr/local/libexec/sago-cloud-pr-media-backup
+  "$OPERATIONS_ROOT/scripts/backup-sago-media-state" \
+  /usr/local/libexec/sago-cloud-media-backup
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/docker-pr-media-mount.conf" \
-  /etc/systemd/system/docker.service.d/sago-cloud-pr-media-mount.conf
+  "$OPERATIONS_ROOT/systemd/docker-sago-media-mount.conf" \
+  /etc/systemd/system/docker.service.d/sago-cloud-media-mount.conf
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/sago-cloud-pr-media-backup.service" \
-  /etc/systemd/system/sago-cloud-pr-media-backup.service
+  "$OPERATIONS_ROOT/systemd/sago-cloud-media-backup.service" \
+  /etc/systemd/system/sago-cloud-media-backup.service
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/sago-cloud-pr-media-backup.timer" \
-  /etc/systemd/system/sago-cloud-pr-media-backup.timer
+  "$OPERATIONS_ROOT/systemd/sago-cloud-media-backup.timer" \
+  /etc/systemd/system/sago-cloud-media-backup.timer
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/sago-cloud-pr-media-prune.service" \
-  /etc/systemd/system/sago-cloud-pr-media-prune.service
+  "$OPERATIONS_ROOT/systemd/sago-cloud-media-prune.service" \
+  /etc/systemd/system/sago-cloud-media-prune.service
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/sago-cloud-pr-media-prune.timer" \
-  /etc/systemd/system/sago-cloud-pr-media-prune.timer
+  "$OPERATIONS_ROOT/systemd/sago-cloud-media-prune.timer" \
+  /etc/systemd/system/sago-cloud-media-prune.timer
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/sago-cloud-pr-media-verify.service" \
-  /etc/systemd/system/sago-cloud-pr-media-verify.service
+  "$OPERATIONS_ROOT/systemd/sago-cloud-media-verify.service" \
+  /etc/systemd/system/sago-cloud-media-verify.service
 "${SUDO[@]}" install -m 0644 \
-  "$OPERATIONS_ROOT/systemd/sago-cloud-pr-media-verify.timer" \
-  /etc/systemd/system/sago-cloud-pr-media-verify.timer
+  "$OPERATIONS_ROOT/systemd/sago-cloud-media-verify.timer" \
+  /etc/systemd/system/sago-cloud-media-verify.timer
 "${SUDO[@]}" systemctl daemon-reload
 
 findmnt "$media_root"
-printf 'Media storage installed. Deploy media-api to start maintenance timers.\n'
+printf 'Media storage installed. Deploy sago-media-api to start maintenance timers.\n'

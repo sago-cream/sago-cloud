@@ -1,8 +1,8 @@
 [Unit]
 Description=Back up Sago Media authentication state
-RequiresMountsFor=/srv/pr-media
+RequiresMountsFor=/srv/sago-media
 After=docker.service
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/libexec/sago-cloud-pr-media-backup
+ExecStart=/usr/local/libexec/sago-cloud-media-backup

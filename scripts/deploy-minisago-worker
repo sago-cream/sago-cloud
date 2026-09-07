@@ -8,6 +8,6 @@ sudo -n install -m 0644 "$apparmor_profile" /etc/apparmor.d/minisago-worker
 sudo -n apparmor_parser -r /etc/apparmor.d/minisago-worker
 sudo -n install -d -m 0700 /var/lib/minisago-sandbox
 
-require_pr_media_mount
+require_media_mount
 compose_pull minisago-worker
 compose_up minisago-worker

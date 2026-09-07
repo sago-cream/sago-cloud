@@ -15,7 +15,7 @@ without changing the host, edge network, deployment tooling, or backup layout.
   secrets/              # production env files, never committed
   backups/
   state/
-/srv/pr-media/          # dedicated, bounded media filesystem
+/srv/sago-media/          # dedicated, bounded media filesystem
 ```
 
 Run `scripts/install-layout` after cloning this repository to
@@ -32,7 +32,7 @@ Each workload is an independent Docker Compose project:
   separately so a configuration merge cannot cut over live traffic.
 - `bot-core` runs the MiniSago Discord bot.
 - `minisago-worker` runs one always-on `chat,dev` Codex worker.
-- `media-api` deploys the versioned `ghcr.io/sago-cream/sago-media` product image. It
+- `sago-media-api` deploys the versioned `ghcr.io/sago-cream/sago-media` product image. It
   handles Sago Drop authorization and uploads, runs native media tools, and persists
   media and SQLite state on disk. Caddy serves the resulting public files. It has
   no published host port and no application source in this repository. See

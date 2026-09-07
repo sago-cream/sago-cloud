@@ -1,0 +1,7 @@
+[Unit]
+Description=Verify Sago Cloud media content hashes
+RequiresMountsFor=/srv/sago-media
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/sago-cloud-media-maintenance verify

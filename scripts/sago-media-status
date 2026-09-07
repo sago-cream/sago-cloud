@@ -2,10 +2,10 @@
 set -euo pipefail
 shopt -s nullglob
 
-media_root="${PR_MEDIA_ROOT:-/srv/pr-media}"
+media_root="${MEDIA_ROOT:-/srv/sago-media}"
 failed=0
 
-printf '[pr-media]\n'
+printf '[sago-media]\n'
 if mounted_source="$(findmnt -rn -o SOURCE --mountpoint "$media_root" 2>/dev/null)"; then
   case "$mounted_source" in
     /dev/loop*) printf 'mount: ok (%s)\n' "$mounted_source" ;;
@@ -42,21 +42,21 @@ if [ -d "$media_root" ]; then
     "$media_count" "$reference_count" "$pin_count"
 fi
 
-if systemctl is-active --quiet sago-cloud-pr-media-backup.timer; then
+if systemctl is-active --quiet sago-cloud-media-backup.timer; then
   printf 'state backup timer: active\n'
 else
   printf 'state backup timer: FAILED\n'
   failed=1
 fi
 
-if systemctl is-active --quiet sago-cloud-pr-media-prune.timer; then
+if systemctl is-active --quiet sago-cloud-media-prune.timer; then
   printf 'prune timer: active\n'
 else
   printf 'prune timer: FAILED\n'
   failed=1
 fi
 
-if systemctl is-active --quiet sago-cloud-pr-media-verify.timer; then
+if systemctl is-active --quiet sago-cloud-media-verify.timer; then
   printf 'integrity timer: active\n'
 else
   printf 'integrity timer: FAILED\n'
@@ -71,9 +71,9 @@ else
 fi
 
 for service in \
-  sago-cloud-pr-media-backup.service \
-  sago-cloud-pr-media-prune.service \
-  sago-cloud-pr-media-verify.service \
+  sago-cloud-media-backup.service \
+  sago-cloud-media-prune.service \
+  sago-cloud-media-verify.service \
   sago-cloud-public-ingress.service; do
   if ! result="$(systemctl show "$service" --property Result --value 2>/dev/null)"; then
     printf '%s: FAILED (unit unavailable)\n' "$service"
