@@ -4,6 +4,18 @@ set -euo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 if [[ "$(id -u)" -eq 0 ]]; then SUDO=(); else SUDO=(sudo -n); fi
 
+# Recovery now uses Git on the Mac and Bitwarden for credentials.
+# Keep the old snapshot tooling available only as an explicit opt-in.
+if [[ "${ENABLE_LEGACY_VOLUME_BACKUPS:-0}" != "1" ]]; then
+  for timer in sago-cloud-state-backup.timer sago-cloud-restore-test.timer; do
+    if systemctl cat "$timer" >/dev/null 2>&1; then
+      "${SUDO[@]}" systemctl disable --now "$timer"
+    fi
+  done
+  printf 'Legacy volume backup timers are retired; use the Git recovery workflow.\n'
+  exit 0
+fi
+
 "${SUDO[@]}" install -o root -g root -m 0755 "$OPERATIONS_ROOT/scripts/backup-state-volumes" /usr/local/libexec/sago-cloud-state-backup
 "${SUDO[@]}" install -o root -g root -m 0755 "$OPERATIONS_ROOT/scripts/verify-state-backups" /usr/local/libexec/sago-cloud-restore-test
 for unit in \

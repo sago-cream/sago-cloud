@@ -71,7 +71,6 @@ scripts/install-health-watch-timer
 scripts/install-docker-cleanup-timer
 scripts/install-minisago-deploy-socket
 scripts/install-public-ingress-timer
-scripts/install-state-backup-timers
 ```
 
 The health-watch installer copies the watcher and its shell dependency into a
@@ -96,11 +95,28 @@ Container logs rotate at 10 MB with three files retained per service.
 The weekly Docker cleanup removes only unused images and build cache older than
 30 days. It never prunes containers, networks, or volumes.
 
-Bot and CouchDB volume backups run daily with the affected stack briefly
-stopped for a consistent snapshot. A weekly restore test imports the newest
-archives into disposable volumes and starts CouchDB against the restored data.
-Off-host copies are made separately; no cloud-storage subscription or
-credential is required by this repository.
+Obi notes are committed and pushed hourly from the Mac to the private
+`sago-cream/obi` repository on `master`. MiniSago durable state is pulled from
+Oracle five minutes past each hour into private `sago-cream/minisago-state`.
+These are ordinary macOS cron jobs; no Codex automation is involved. Both require
+the Mac to be awake and connected; MiniSago also requires Tailscale access.
+
+MiniSago snapshots include guild-memory Markdown plus its Git history, reminders,
+feature availability, PR-thread continuity and monitor cursors. They exclude media,
+recordings, traces, sessions, caches, dependencies and workspaces. The memory repo
+on Oracle deliberately has no remote; the separate backup checkout owns publishing.
+The reader validates JSON and requires matching reads around its history capture,
+retrying on concurrent changes without stopping services.
+
+Current recovery secrets are in Bitwarden folder **Obi and MiniSago Recovery**.
+See the private state repository README for restore instructions. Recover Obi by
+cloning its `master` branch, rebuilding an empty CouchDB service, and uploading
+from the recovered Mac vault before reconnecting other clients.
+
+`sago-cloud-state-backup.timer` and `sago-cloud-restore-test.timer` were disabled
+on 2026-09-09. `scripts/install-state-backup-timers` keeps them disabled by default;
+set `ENABLE_LEGACY_VOLUME_BACKUPS=1` only to deliberately restore the old policy.
+Media itself is expendable by user choice; this change does not delete live media.
 
 Media prune and integrity timers run commands inside the published media image.
 Install storage first; a successful media deployment enables the timers.
