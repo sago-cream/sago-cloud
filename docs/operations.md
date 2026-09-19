@@ -62,6 +62,53 @@ Production secrets are never committed. For Sago Media, copy
 `env/sago-media-api.env.example` to `sago-media-api.env`.
 Existing media installations require [the 2.0 migration](media-migration.md).
 
+## MiniSago shared Drive connector
+
+The dedicated `discord-drive` Google project and service account grant read-only
+access to the 11 approved NTHUSA shared drives. Restore the complete JSON from
+the encrypted attachment in the **discord-drive** entry at `safe.nthusa.tw`.
+The account is `discord-drive@nthusa-discord-drive.iam.gserviceaccount.com`;
+do not substitute an admin user's OAuth token or the Calendar service account.
+
+Install compact, one-line JSON as `MINISAGO_GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON`
+in `/srv/sago-cloud/secrets/bot-core.env`. Keep that file mode 600; preserve all
+unrelated values, including `MINISAGO_GOOGLE_CALENDAR_SERVICE_ACCOUNT_JSON`.
+Write replacements atomically. JSON keeps PEM newlines escaped; do not place
+literal private-key line breaks in the env file. Bot-core already loads this
+file through Compose `env_file`, so no key belongs in a Compose file or Git.
+Never add the credential to `minisago-worker.env` or the sandbox. The worker
+receives only requested document bytes through the existing authenticated media
+endpoint. `MINISAGO_GOOGLE_DRIVE_ACCESS=owner` is the initial access policy;
+`guild` permits all chatbot users in guild `1514899496797212683` to retrieve
+these documents, including finance and court material. Other guilds and DMs
+remain excluded. Responses appear in the invoking Discord channel.
+
+Deploy the merged MiniSago change only after its core and worker images pass.
+Use MiniSago's `bun run deploy` from clean `main` matching `origin/main`; the
+existing deployment helper updates core, Oracle worker, and Python sandbox.
+The worker image supplies pypdf, python-docx, and openpyxl for PDF and Office
+reads. Do not fast-forward or reset a dirty operations checkout as part of a
+secret-only change. If images are already current and only the env changed,
+recreate bot-core with the normal Compose deployment rather than merely
+restarting it (restart does not reload env_file).
+
+Verify `/api/health`, the connected worker, and these host-bound MCP operations:
+list the approved drives, search a known drive for meeting minutes, read a
+Google Doc, and fetch a PDF through request-local media for sandbox extraction.
+Verify Drive tools are absent for a DM, another guild, and a non-owner when
+access is `owner`. Log status and counts only, never credentials or document
+contents. Google sharing remains the data permission boundary; the application
+also checks every file against its approved drive IDs.
+
+For recovery or rotation, restore the vault attachment, check its account and
+project, install the replacement on the host, and verify search/read before
+revoking the previous key. Keep Google's inherited service-account key-creation
+restriction enforced outside an approved rotation window. The old admin OAuth
+client and grant are not part of this connector. Keep a protected rollback copy
+of bot-core.env during installation; after verification, remove temporary local
+key downloads. Record deployment revision and verification date in the vault
+entry so a later operator can restore the same configuration.
+
 ## Scheduled jobs
 
 Install or refresh systemd units after changing the operations checkout:
