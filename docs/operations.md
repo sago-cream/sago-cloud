@@ -78,10 +78,22 @@ literal private-key line breaks in the env file. Bot-core already loads this
 file through Compose `env_file`, so no key belongs in a Compose file or Git.
 Never add the credential to `minisago-worker.env` or the sandbox. The worker
 receives only requested document bytes through the existing authenticated media
-endpoint. `MINISAGO_GOOGLE_DRIVE_ACCESS=owner` is the initial access policy;
-`guild` permits all chatbot users in guild `1514899496797212683` to retrieve
-these documents, including finance and court material. Other guilds and DMs
-remain excluded. Responses appear in the invoking Discord channel.
+endpoint. Set `MINISAGO_GOOGLE_DRIVE_ACCESS=roles`; other values disable Drive
+tools. The host checks fresh guild membership and matches current Google group
+permissions to these Discord roles: 部長 `1514899497199861863`, 活動
+`1514899497187147824`, 社群 `1514899497199861861`, 學權
+`1514899497187147825`, 資訊 `1514899497187147822`. Their Google groups are
+`sa-exec`, `sa-event`, `sa-media`, `sa-rights`, and `sa-it` at `nthusa.tw`, matched
+by stable Google permission IDs in the application.
+
+The server owner's chosen policy grants every member of guild
+`1514899496797212683` access through active, readable **unmapped Google groups**,
+including newly added unmapped groups. Individual-user, domain, and public-link
+grants do not authorize Discord access. The bot owner has no role bypass.
+Catalog entries, search results, direct reads, and cached media downloads
+recheck Google permissions. Other guilds and DMs remain excluded. Only the
+requester's roles are checked; replies appear in the invoking channel even
+when other channel members lack those roles.
 
 Deploy the merged MiniSago change only after its core and worker images pass.
 Use MiniSago's `bun run deploy` from clean `main` matching `origin/main`; the
@@ -95,10 +107,12 @@ restarting it (restart does not reload env_file).
 Verify `/api/health`, the connected worker, and these host-bound MCP operations:
 list the approved drives, search a known drive for meeting minutes, read a
 Google Doc, and fetch a PDF through request-local media for sandbox extraction.
-Verify Drive tools are absent for a DM, another guild, and a non-owner when
-access is `owner`. Log status and counts only, never credentials or document
-contents. Google sharing remains the data permission boundary; the application
-also checks every file against its approved drive IDs.
+Verify Drive tools are absent for a DM, another guild, and any access mode
+other than `roles`. Check mapped department access, cross-department denial,
+and unmapped-group access for a member without mapped roles. Revoke a role or
+group grant and verify direct reads and cached media stop working. Log status
+and counts only, never credentials or document contents. Google sharing and
+the Discord role mapping jointly authorize access within the approved drives.
 
 For recovery or rotation, restore the vault attachment, check its account and
 project, install the replacement on the host, and verify search/read before
