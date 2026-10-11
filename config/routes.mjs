@@ -6,6 +6,10 @@ export const routes = [
 \tencode zstd gzip
 \tlog
 
+\t@mail path /mail /mail/* /bot/mail /bot/mail/*
+\tlog_skip @mail
+
+\theader @mail >Referrer-Policy strict-origin
 \theader {
 \t\tReferrer-Policy no-referrer
 \t\tX-Content-Type-Options nosniff

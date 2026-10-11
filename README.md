@@ -27,3 +27,8 @@ Cloudflare Tunnel.
   maintenance schedules
 - [Migration and rollback](docs/migration.md) — legacy namespace migration,
   host rename, and post-rollback cleanup
+
+The bot mail approval routes (`/mail` and `/mail/*`, including the `/bot` prefix)
+use origin-only referrers so same-origin OAuth forms can validate their browser
+origin. Edge access logging skips these routes to keep invitation tokens and
+OAuth codes out of request logs.
