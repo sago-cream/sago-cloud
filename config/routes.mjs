@@ -10,6 +10,7 @@ export const routes = [
 \tlog_skip @mail
 
 \theader @mail >Referrer-Policy strict-origin
+\theader @mail >Cache-Control "no-store, no-transform"
 \theader {
 \t\tReferrer-Policy no-referrer
 \t\tX-Content-Type-Options nosniff
