@@ -11,6 +11,10 @@
 	encode zstd gzip
 	log
 
+	@mail path /mail /mail/* /bot/mail /bot/mail/*
+	log_skip @mail
+
+	header @mail >Referrer-Policy strict-origin
 	header {
 		Referrer-Policy no-referrer
 		X-Content-Type-Options nosniff
