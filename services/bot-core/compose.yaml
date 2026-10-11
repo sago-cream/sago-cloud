@@ -10,8 +10,8 @@ services:
   bot-core:
     image: ghcr.io/sago-cream/minisago:${BOT_CORE_IMAGE_TAG:-main}
     restart: unless-stopped
-    cpus: 0.25
-    mem_limit: 256m
+    cpus: 1
+    mem_limit: 1g
     logging: *default-logging
     labels:
       dev.hsichen.sago-cloud.managed: "true"
@@ -22,7 +22,14 @@ services:
       MINISAGO_DEPLOY_NOTIFICATION_STATE_FILE: /app/state/minisago-deploy-notifications.json
       MINISAGO_DEPLOY_STATUS_FILE: /run/sago-cloud/minisago-deploy/latest.json
       MINISAGO_REMINDER_STATE_FILE: /app/state/reminders.json
+      MINISAGO_WHISPER_URL: http://whisper:8080
+      MINISAGO_VOICEVOX_URL: http://voicevox:50021
       X_POST_STATE_FILE: /app/state/x-post-state.json
+    depends_on:
+      whisper:
+        condition: service_healthy
+      voicevox:
+        condition: service_started
     healthcheck:
       test:
         - CMD-SHELL
@@ -38,6 +45,55 @@ services:
       frontend:
         aliases:
           - bot-core
+
+  whisper:
+    image: ghcr.io/sago-cream/minisago:${BOT_CORE_IMAGE_TAG:-main}
+    restart: unless-stopped
+    entrypoint: ["/usr/local/bin/whisper-server"]
+    command:
+      - --model
+      - /opt/minisago-models/ggml-base.bin
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --threads
+      - "2"
+      - --language
+      - auto
+      - --no-timestamps
+    cpus: 2
+    mem_limit: 768m
+    logging: *default-logging
+    labels:
+      dev.hsichen.sago-cloud.managed: "true"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -qO-
+        - http://127.0.0.1:8080/
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
+    networks:
+      frontend:
+        aliases:
+          - whisper
+
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-arm64-ubuntu24.04-0.25.2@sha256:5308001079a9e46b4eba966d6672076d28f6848c33afbcb40e4e2df31d498134
+    restart: unless-stopped
+    cpus: 2
+    mem_limit: 2g
+    logging: *default-logging
+    labels:
+      dev.hsichen.sago-cloud.managed: "true"
+    networks:
+      frontend:
+        aliases:
+          - voicevox
 
 networks:
   frontend:
