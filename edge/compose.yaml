@@ -8,7 +8,8 @@ x-logging: &default-logging
 
 services:
   edge:
-    image: caddy:2-alpine
+    image: sago-cloud/caddy:2.11.4-go1.27.3
+    build: .
     restart: unless-stopped
     cpus: 0.25
     mem_limit: 128m

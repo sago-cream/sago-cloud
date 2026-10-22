@@ -9,7 +9,7 @@ public_ingress_installer="$repo_root/scripts/install-public-ingress-timer"
 public_ingress_service="$repo_root/systemd/sago-cloud-public-ingress.service"
 public_ingress_timer="$repo_root/systemd/sago-cloud-public-ingress.timer"
 
-grep -Fq 'cloudflare/cloudflared:2026.7.1' "$compose"
+grep -Fq 'cloudflare/cloudflared:2026.10.3' "$compose"
 grep -Fq '/srv/sago-cloud/secrets/cloudflared:/etc/cloudflared:ro' "$compose"
 grep -Fq 'name: ${EDGE_NETWORK_NAME:-sago_cloud_edge}' "$compose"
 grep -Fq -- '--config /etc/cloudflared/config.yml run' "$compose"
