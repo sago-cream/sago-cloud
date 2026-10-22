@@ -4,7 +4,7 @@ set -euo pipefail
 source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
 require_media_mount
-compose_pull edge
+compose edge build --pull edge
 compose_up edge
 compose edge exec -T edge caddy validate --config /etc/caddy/Caddyfile
 compose edge exec -T edge caddy reload --config /etc/caddy/Caddyfile

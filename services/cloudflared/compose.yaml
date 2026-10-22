@@ -8,7 +8,7 @@ x-logging: &default-logging
 
 services:
   cloudflared:
-    image: cloudflare/cloudflared:2026.7.1
+    image: cloudflare/cloudflared:2026.10.3
     restart: unless-stopped
     cpus: 0.25
     mem_limit: 128m
