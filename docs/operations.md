@@ -132,6 +132,7 @@ scripts/install-health-watch-timer
 scripts/install-docker-cleanup-timer
 scripts/install-minisago-deploy-socket
 scripts/install-public-ingress-timer
+scripts/install-private-backup-timers
 ```
 
 The health-watch installer copies the watcher and its shell dependency into a
@@ -162,10 +163,12 @@ The weekly Docker cleanup removes only unused images and build cache older than
 30 days. It never prunes containers, networks, or volumes.
 
 Obi notes are committed and pushed hourly from the Mac to the private
-`sago-cream/obi` repository on `master`. MiniSago durable state is pulled from
-Oracle five minutes past each hour into private `sago-cream/minisago-state`.
-These are ordinary macOS cron jobs; no Codex automation is involved. Both require
-the Mac to be awake and connected; MiniSago also requires Tailscale access.
+`sago-cream/obi` repository on `master`. This remains an ordinary macOS cron job
+and requires the Mac to be awake with new notes synchronized from LiveSync.
+MiniSago runs independently on Oracle: `minisago-state-backup.timer` snapshots
+its local core state volume five minutes past each hour and pushes to private
+`sago-cream/minisago-state`. It catches missed runs after Oracle starts. The old
+MiniSago Mac cron job is retired. No Codex automation is involved.
 
 MiniSago snapshots include guild-memory Markdown plus its Git history, reminders,
 feature availability, PR-thread continuity and monitor cursors. They exclude media,
@@ -173,6 +176,15 @@ recordings, traces, sessions, caches, dependencies and workspaces. The memory re
 on Oracle deliberately has no remote; the separate backup checkout owns publishing.
 The reader validates JSON and requires matching reads around its history capture,
 retrying on concurrent changes without stopping services.
+Monitor `lastCheckedAt` updates alone do not produce Git commits; meaningful
+snapshots retain current timestamps and actual cursor changes. Live polling and
+both hourly backup schedules remain unchanged.
+
+Media authentication state and MiniSago's encrypted mail credentials are backed
+up daily on Oracle, then copied to the FileVault-protected recovery Mac outside
+Git. Copies are integrity-checked and retained for 30 days. Mail snapshots contain
+only the encrypted credential table, excluding pending OAuth sessions. See
+[private database backups](backups.md) for installation, health and recovery.
 
 Current recovery secrets are in Bitwarden folder **Obi and MiniSago Recovery**.
 See the private state repository README for restore instructions. Recover Obi by

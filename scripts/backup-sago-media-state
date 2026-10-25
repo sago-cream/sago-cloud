@@ -26,6 +26,7 @@ trap 'rm -f -- "$temporary"' EXIT
   'import { Database } from "bun:sqlite"; import { unlink } from "node:fs/promises"; const path = `/tmp/media-backup-${crypto.randomUUID()}.sqlite`; try { const bytes = await Bun.stdin.arrayBuffer(); await Bun.write(path, bytes); const db = new Database(path, { readonly: true }); const result = db.query("PRAGMA integrity_check").get(); if (result.integrity_check !== "ok") process.exitCode = 1; } finally { await unlink(path).catch(() => {}); }' \
   <"$temporary"
 
-"${SUDO[@]}" install -o root -g root -m 0600 "$temporary" "$destination"
+"${SUDO[@]}" install -o root -g root -m 0600 "$temporary" "$destination.pending"
+"${SUDO[@]}" mv "$destination.pending" "$destination"
 "${SUDO[@]}" find "$backup_dir" -type f -name 'media-*.sqlite' -mtime +30 -delete
 printf '%s\n' "$destination"
