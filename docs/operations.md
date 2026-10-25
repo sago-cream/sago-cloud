@@ -163,7 +163,7 @@ The weekly Docker cleanup removes only unused images and build cache older than
 30 days. It never prunes containers, networks, or volumes.
 
 Obi notes are committed and pushed hourly from the Mac to the private
-`sago-cream/obi` repository on `master`. This remains an ordinary macOS cron job
+`sago-cream/obi` repository on `main`. This remains an ordinary macOS cron job
 and requires the Mac to be awake with new notes synchronized from LiveSync.
 MiniSago runs independently on Oracle: `minisago-state-backup.timer` snapshots
 its local core state volume five minutes past each hour and pushes to private
@@ -188,7 +188,7 @@ only the encrypted credential table, excluding pending OAuth sessions. See
 
 Current recovery secrets are in Bitwarden folder **Obi and MiniSago Recovery**.
 See the private state repository README for restore instructions. Recover Obi by
-cloning its `master` branch, rebuilding an empty CouchDB service, and uploading
+cloning its `main` branch, rebuilding an empty CouchDB service, and uploading
 from the recovered Mac vault before reconnecting other clients.
 
 `sago-cloud-state-backup.timer` and `sago-cloud-restore-test.timer` were disabled
