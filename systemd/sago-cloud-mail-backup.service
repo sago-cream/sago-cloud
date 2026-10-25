@@ -1,0 +1,8 @@
+[Unit]
+Description=Back up MiniSago encrypted mail credentials
+After=docker.service
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/usr/local/libexec/sago-cloud-mail-backup

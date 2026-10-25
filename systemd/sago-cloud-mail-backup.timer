@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up MiniSago encrypted mail credentials daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=30m
+
+[Install]
+WantedBy=timers.target

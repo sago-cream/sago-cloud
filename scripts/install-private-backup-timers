@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [ "$(id -u)" -eq 0 ]; then SUDO=(); else SUDO=(sudo -n); fi
+
+"${SUDO[@]}" install -o root -g root -m 0755 "$repo_root/scripts/backup-minisago-mail-state" /usr/local/libexec/sago-cloud-mail-backup
+"${SUDO[@]}" install -o root -g root -m 0755 "$repo_root/scripts/backup-sago-media-state" /usr/local/libexec/sago-cloud-media-backup
+"${SUDO[@]}" install -o root -g root -m 0755 "$repo_root/scripts/private-backups.py" /usr/local/libexec/sago-cloud-private-backups
+for unit in sago-cloud-mail-backup.service sago-cloud-mail-backup.timer; do
+  "${SUDO[@]}" install -o root -g root -m 0644 "$repo_root/systemd/$unit" "/etc/systemd/system/$unit"
+done
+"${SUDO[@]}" systemctl daemon-reload
+"${SUDO[@]}" systemctl enable --now sago-cloud-mail-backup.timer
+printf 'Mail backup timer and private off-host export installed.\n'

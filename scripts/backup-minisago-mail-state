@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+if [ "$(id -u)" -eq 0 ]; then SUDO=(); else SUDO=(sudo -n); fi
+operations_root="${OPERATIONS_ROOT:-/srv/sago-cloud/operations}"
+backup_dir="${BACKUPS_ROOT:-/srv/sago-cloud/backups}/minisago-mail"
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+temporary="$(mktemp "${TMPDIR:-/tmp}/sago-mail-state.XXXXXX")"
+trap 'rm -f -- "$temporary"' EXIT
+
+# Only encrypted durable credentials belong in recovery. Pending OAuth flows,
+# browser receipts and invitations deliberately stay in the live database.
+"${SUDO[@]}" docker compose -f "$operations_root/services/bot-core/compose.yaml" exec -T bot-core bun -e '
+  import { Database } from "bun:sqlite";
+  const source = new Database(process.env.MINISAGO_MAIL_STORE_PATH || "/app/state/mail/access.sqlite", { readonly: true });
+  const backup = new Database(":memory:");
+  backup.exec("CREATE TABLE credentials (email TEXT PRIMARY KEY, client TEXT NOT NULL, ciphertext TEXT NOT NULL)");
+  const insert = backup.query("INSERT INTO credentials VALUES (?, ?, ?)");
+  const rows = source.query("SELECT email, client, ciphertext FROM credentials").all();
+  backup.transaction(() => { for (const row of rows) insert.run(row.email, row.client, row.ciphertext); })();
+  if (backup.query("PRAGMA integrity_check").get().integrity_check !== "ok") throw new Error("Mail backup integrity check failed");
+  process.stdout.write(Buffer.from(backup.serialize()));
+' >"$temporary"
+
+"${SUDO[@]}" install -d -o root -g root -m 0700 "$backup_dir"
+"${SUDO[@]}" install -o root -g root -m 0600 "$temporary" "$backup_dir/mail-$timestamp.pending"
+"${SUDO[@]}" mv "$backup_dir/mail-$timestamp.pending" "$backup_dir/mail-$timestamp.sqlite"
+"${SUDO[@]}" find "$backup_dir" -type f -name 'mail-*.sqlite' -mtime +30 -delete
+printf 'Saved encrypted mail credentials: %s\n' "$backup_dir/mail-$timestamp.sqlite"

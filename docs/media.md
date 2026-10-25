@@ -40,7 +40,7 @@ The `sago-media-api` stack pulls the versioned
 - health checks and resource limits;
 - systemd schedules that run the image's prune and verify commands.
 - daily backups of authentication state retained for 30 days outside the media
-  filesystem.
+  filesystem, with verified off-host copies on the recovery Mac.
 
 Override `MEDIA_IMAGE` during deployment to select another immutable release.
 The VM never builds media application source.
@@ -84,6 +84,8 @@ product container. Their implementation and retention policy therefore remain
 versioned with the product image, while Sago Cloud owns when and where they run.
 The backup timer serializes and verifies `.service/media.sqlite` into
 `/srv/sago-cloud/backups/sago-media`.
+The [private backup agent](backups.md) copies these snapshots off Oracle daily,
+verifies checksums and SQLite integrity, and retains 30 days on the Mac.
 
 ## Release and upgrade
 
