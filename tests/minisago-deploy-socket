@@ -12,11 +12,38 @@ trap 'rm -rf -- "$temporary"' EXIT
 operations="$temporary/operations"
 state="$temporary/state"
 mkdir -p "$operations/scripts" "$state"
+mkdir -p "$operations/scripts/lib" "$temporary/bin"
+cp "$repo_root/scripts/wait-minisago-images" "$operations/scripts/"
+cp "$repo_root/scripts/lib/common.sh" "$operations/scripts/lib/"
+export PATH="$temporary/bin:$PATH"
+export FAKE_IMAGE_EVENTS="$temporary/image-events"
+export FAKE_IMAGE_MISSING="$temporary/missing-image"
+export MINISAGO_IMAGE_RETRY_SECONDS=0
+cat >"$temporary/bin/timeout" <<'SCRIPT'
+#!/usr/bin/env bash
+shift
+exec "$@"
+SCRIPT
+cat >"$temporary/bin/docker" <<'SCRIPT'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "$1" == info ]]; then exit 0; fi
+printf '%s\n' "$*" >>"$FAKE_IMAGE_EVENTS"
+if [[ "$1" == manifest && "$*" == *minisago-worker:* && -f "$FAKE_IMAGE_MISSING" ]]; then
+  if [[ "$(cat "$FAKE_IMAGE_MISSING")" == permanent ]]; then exit 1; fi
+  rm "$FAKE_IMAGE_MISSING"
+  exit 1
+fi
+if [[ "$1" == pull && "${FAKE_PULL_FAILURE:-}" == true ]]; then exit 1; fi
+SCRIPT
+chmod +x "$temporary/bin/timeout" "$temporary/bin/docker"
+printf 'transient\n' >"$FAKE_IMAGE_MISSING"
 
 cat >"$operations/scripts/deploy-minisago" <<'SCRIPT'
 #!/usr/bin/env bash
 set -euo pipefail
 printf '%s %s\n' "$BOT_CORE_IMAGE_TAG" "$MINISAGO_WORKER_IMAGE_TAG"
+printf 'deploy\n' >>"$FAKE_IMAGE_EVENTS"
 SCRIPT
 chmod +x "$operations/scripts/deploy-minisago"
 
@@ -37,6 +64,34 @@ grep -Fq "\"channelId\":\"$channel_id\"" "$state/minisago-deploy/latest.json"
 status_mode="$(stat -c '%a' "$state/minisago-deploy/latest.json" 2>/dev/null || stat -f '%Lp' "$state/minisago-deploy/latest.json")"
 [[ "$status_mode" == "644" ]]
 grep -Fq "sha-$commit sha-$commit" "$state/minisago-deploy/$commit.log"
+[[ "$(grep -c '^manifest inspect .*minisago-worker:' "$FAKE_IMAGE_EVENTS")" == 2 ]]
+[[ "$(grep -c '^pull ' "$FAKE_IMAGE_EVENTS")" == 2 ]]
+[[ "$(tail -1 "$FAKE_IMAGE_EVENTS")" == deploy ]]
+
+# Publication timeouts and download failures must never restart either service.
+for failure in missing pull; do
+  : >"$FAKE_IMAGE_EVENTS"
+  if [[ "$failure" == missing ]]; then
+    printf 'permanent\n' >"$FAKE_IMAGE_MISSING"
+    export FAKE_PULL_FAILURE=false
+  else
+    rm "$FAKE_IMAGE_MISSING"
+    export FAKE_PULL_FAILURE=true
+  fi
+  if printf 'deploy %s %s\n' "$commit" "$channel_id" |
+    OPERATIONS_ROOT="$operations" STATE_ROOT="$state" \
+      MINISAGO_DEPLOY_DELAY_SECONDS=0 MINISAGO_DEPLOY_FLOCK_COMMAND=true \
+      MINISAGO_IMAGE_WAIT_SECONDS=0 "$handler" >"$temporary/response"; then
+    printf 'deployment unexpectedly succeeded after %s failure\n' "$failure" >&2
+    exit 1
+  fi
+  [[ "$(cat "$temporary/response")" == "accepted $commit" ]]
+  grep -Fq '"status":"failed"' "$state/minisago-deploy/latest.json"
+  if grep -Fqx deploy "$FAKE_IMAGE_EVENTS"; then
+    printf 'services restarted after %s failure\n' "$failure" >&2
+    exit 1
+  fi
+done
 
 if printf 'deploy main invalid\n' | "$handler" | grep -Fq '^accepted '; then
   printf 'invalid deployment request was accepted\n' >&2

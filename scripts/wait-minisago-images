@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+
+commit="${1:-}"
+if [[ ! "$commit" =~ ^[0-9a-f]{40}$ ]]; then
+  printf 'MiniSago images require a full commit SHA.\n' >&2
+  exit 64
+fi
+
+wait_seconds="${MINISAGO_IMAGE_WAIT_SECONDS:-600}"
+retry_seconds="${MINISAGO_IMAGE_RETRY_SECONDS:-10}"
+deadline=$((SECONDS + wait_seconds))
+images=(
+  "ghcr.io/sago-cream/minisago:sha-$commit"
+  "ghcr.io/sago-cream/minisago-worker:sha-$commit"
+)
+
+# A merge starts image builds asynchronously. Keep the current release running
+# until both immutable images are published and downloaded.
+for image in "${images[@]}"; do
+  until timeout 30 "${DOCKER[@]}" manifest inspect "$image" >/dev/null; do
+    if (( SECONDS >= deadline )); then
+      printf 'Timed out waiting for MiniSago image %s.\n' "$image" >&2
+      exit 1
+    fi
+    printf 'Waiting for MiniSago image %s.\n' "$image"
+    sleep "$retry_seconds"
+  done
+done
+
+for image in "${images[@]}"; do
+  "${DOCKER[@]}" pull "$image"
+done

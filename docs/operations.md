@@ -152,7 +152,10 @@ inode mounted into the worker.
 
 The MiniSago deployment socket accepts one immutable commit from the Oracle
 worker, acknowledges it before the worker restarts, and deploys the matching
-core and worker image tags as a socket-activated service. The request also
+core and worker image tags as a socket-activated service. The host waits up to
+ten minutes for both commit-tagged images to be published, then downloads both
+before replacing either service. Missing images or pull failures leave the
+running release untouched and report failure to the thread. The request also
 carries the originating Discord thread ID so the bot can report the terminal
 result after restart. Requests cannot supply a command, path, image name, or
 deployment target. Status and logs are stored under
