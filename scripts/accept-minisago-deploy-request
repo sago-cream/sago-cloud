@@ -49,6 +49,8 @@ failed() {
 trap failed ERR
 
 sleep "$delay_seconds"
+write_status waiting_images
+"$OPERATIONS_ROOT/scripts/wait-minisago-images" "$commit"
 write_status running
 
 image_tag="sha-$commit"
