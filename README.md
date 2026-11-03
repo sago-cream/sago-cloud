@@ -9,7 +9,8 @@ Cloudflare Tunnel.
 | Stack | Role |
 | --- | --- |
 | `bot-core` | [MiniSago](https://github.com/sago-cream/mini-sago) Discord bot |
-| `minisago-worker` | Always-on Codex worker |
+| `minisago-worker` | Always-on chat and media worker |
+| `t3` | Persistent owner coding sessions, independent of bot releases |
 | `sago-media-api` | [Sago Media](https://github.com/sago-cream/sago-media): Sago Drop uploads, processing, and storage |
 | `obi` | CouchDB for Obsidian LiveSync |
 | `edge` | Caddy routing and media serving |
@@ -33,3 +34,5 @@ use origin-only referrers so same-origin OAuth forms can validate their browser
 origin. Edge access logging skips these routes to keep invitation tokens and
 OAuth codes out of request logs. The mail pages also prohibit intermediary HTML
 transforms so mailbox addresses stay visible without third-party scripts.
+
+T3 coding setup and credential rotation are documented in [T3 operations](docs/t3.md).

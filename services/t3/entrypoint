@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+for directory in /home/bun/.t3 /workspace; do
+  mkdir -p "$directory"
+  chown bun:bun "$directory"
+  chmod 700 "$directory"
+done
+exec setpriv --reuid=bun --regid=bun --init-groups -- "$@"

@@ -21,6 +21,8 @@ VOLUME_NAMES=(
   sago_cloud_minisago-github
   sago_cloud_minisago-state
   sago_cloud_minisago-workspace
+  sago_cloud_t3-state
+  sago_cloud_t3-workspace
 )
 
 export OPERATIONS_ROOT SAGO_CLOUD_ROOT SECRETS_ROOT BACKUPS_ROOT STATE_ROOT

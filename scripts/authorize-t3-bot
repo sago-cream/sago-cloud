@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Credentials stay inside this pipe and the bot's private state volume.
+source "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
+compose t3 exec -T --user bun t3 python3 /opt/t3/authorize-bot.py |
+  compose bot-core exec -T --user bun bot-core bun -e '
+    import { mkdir, rename, writeFile } from "node:fs/promises";
+    const credential = JSON.parse(await Bun.stdin.text());
+    if (!credential.tokens?.access_token) throw new Error("Missing T3 grant");
+    const directory = "/app/state/t3";
+    await mkdir(directory, { recursive: true, mode: 0o700 });
+    const temporary = `${directory}/oauth.${crypto.randomUUID()}.tmp`;
+    await writeFile(temporary, JSON.stringify(credential), { mode: 0o600 });
+    await rename(temporary, `${directory}/oauth.json`);
+  '
+printf 'T3 OAuth grant saved privately. Restart bot-core to use the new grant.\n'

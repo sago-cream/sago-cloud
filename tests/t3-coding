@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+compose="$root/services/t3/compose.yaml"
+grep -Fq '127.0.0.1:3773:3773' "$compose"
+if grep -Eq 'docker.sock|bot-core.env|privileged:' "$compose"; then
+  echo 'T3 must not receive bot credentials or administrative host access' >&2; exit 1
+fi
+grep -Fq '/run/sago-cloud/minisago-deploy.sock:/run/sago-cloud/minisago-deploy.sock' "$compose"
+if grep -q minisago-deploy.sock "$root/services/minisago-worker/compose.yaml"; then
+  echo "Chat workers must not receive the coding deployment socket" >&2; exit 1
+fi
+grep -Fq 't3-state:/home/bun/.t3' "$compose"
+grep -Fq 'minisago-codex:/home/bun/.codex' "$compose"
+grep -Fq 'sha256sum -c -' "$root/services/t3/Dockerfile"
+if grep -q 't3' "$root/scripts/deploy-minisago"; then
+  echo 'Bot deployment must leave T3 sessions running' >&2; exit 1
+fi
+printf 'Oracle coding service keeps sessions independent of bot deployment\n'
