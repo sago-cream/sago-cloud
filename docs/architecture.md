@@ -31,7 +31,7 @@ Each workload is an independent Docker Compose project:
 - `cloudflared` provides outbound-only Cloudflare Tunnel ingress. It deploys
   separately so a configuration merge cannot cut over live traffic.
 - `bot-core` runs the MiniSago Discord bot.
-- `minisago-worker` runs one always-on `chat,dev` Codex worker.
+- `minisago-worker` runs one always-on `chat` Codex worker.
 - `sago-media-api` deploys the versioned `ghcr.io/sago-cream/sago-media` product image. It
   handles Sago Drop authorization and uploads, runs native media tools, and persists
   media and SQLite state on disk. Caddy serves the resulting public files. It has
@@ -52,10 +52,10 @@ The worker mounts one repo-scoped GitHub login, a broker secret, persistent
 Codex and worker state, and a disposable workspace. Media uploads go through
 the authenticated public API; the worker does not mount media storage.
 
-The broker binds the worker secret to `oracle`/`chat,dev`, while Codex restricts
-each job to its selected checkout. Only owner requests can route to Sol. Remote
-mutation requires an explicit owner request, protected branches reject direct
-and force pushes, and provider credentials are not mounted.
+The broker binds the worker secret to Oracle chat execution. Owner coding
+sessions run in T3 with normal project permissions and the shared GitHub login.
+Protected branches remain enforced by GitHub. The coding environment receives
+no Discord bot token or unrelated production credentials.
 
 Codex runs job commands through Bubblewrap. The worker keeps Docker's default
 seccomp allowlist, with only Bubblewrap's namespace and mount setup syscalls
@@ -78,3 +78,6 @@ ghcr.io/sago-cream/sago-media
 The VM only pulls images and starts containers; it does not clone or build
 application source. Before the first private image pull, authenticate Docker on
 the VM with a GitHub token limited to `read:packages`.
+
+Owner coding runs in an independent T3 stack. Its volumes and service lifecycle
+are separate from bot releases; see [T3 operations](t3.md).

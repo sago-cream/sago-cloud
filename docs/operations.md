@@ -11,10 +11,14 @@ bun run deploy:cloudflared
 bun run deploy:bot-core
 bun run deploy:minisago
 bun run deploy:minisago-worker
+bun run deploy:t3
 bun run deploy:sago-media-api
 bun run deploy:obi
 bun run status
 ```
+
+T3 is deployed explicitly and stays running across MiniSago releases. See
+[T3 setup and grant renewal](t3.md).
 
 `deploy:all` manages the regular stacks. Cloudflare Tunnel deploys separately.
 `deploy:minisago` and `deploy:proxy` remain compatibility aliases.

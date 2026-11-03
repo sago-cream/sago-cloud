@@ -41,7 +41,7 @@ assert_absent services/obi/compose.yaml '0.0.0.0:5984:5984'
 
 assert_contains services/minisago-worker/compose.yaml 'name: ${EDGE_NETWORK_NAME:-sago_cloud_edge}'
 assert_absent services/minisago-worker/compose.yaml 'sago_cloud_data'
-assert_contains services/minisago-worker/compose.yaml 'MINISAGO_WORKER_CAPABILITIES: chat,dev'
+assert_contains services/minisago-worker/compose.yaml 'MINISAGO_WORKER_CAPABILITIES: chat'
 assert_contains services/minisago-worker/compose.yaml '/srv/sago-cloud/secrets/minisago-worker.env'
 assert_absent services/minisago-worker/compose.yaml '/srv/sago-cloud/secrets/minisago-worker-read.env'
 assert_absent services/minisago-worker/compose.yaml '/srv/sago-cloud/secrets/minisago-worker-write.env'

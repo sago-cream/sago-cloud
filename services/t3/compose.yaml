@@ -1,0 +1,60 @@
+name: sago-cloud-t3
+
+services:
+  t3:
+    hostname: sago-cloud-oracle
+    image: sago-cloud-t3:0.1.6
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    init: true
+    cpus: 1.5
+    mem_limit: 6g
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      dev.hsichen.sago-cloud.managed: "true"
+    ports:
+      - "127.0.0.1:3773:3773"
+    volumes:
+      - t3-state:/home/bun/.t3
+      - t3-workspace:/workspace
+      # Same auth stores as the worker, without duplicating rotating credentials.
+      - minisago-codex:/home/bun/.codex
+      - minisago-github:/home/bun/.config/gh
+      - /run/sago-cloud/minisago-deploy.sock:/run/sago-cloud/minisago-deploy.sock
+    networks:
+      frontend:
+        aliases:
+          - t3
+    healthcheck:
+      test: ["CMD", "bun", "-e", "const r=await fetch('http://127.0.0.1:3773/.well-known/t3/environment');process.exit(r.ok?0:1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  frontend:
+    external: true
+    name: ${EDGE_NETWORK_NAME:-sago_cloud_edge}
+
+volumes:
+  t3-state:
+    external: true
+    name: sago_cloud_t3-state
+  t3-workspace:
+    external: true
+    name: sago_cloud_t3-workspace
+  minisago-codex:
+    external: true
+    name: sago_cloud_minisago-codex
+  minisago-github:
+    external: true
+    name: sago_cloud_minisago-github
