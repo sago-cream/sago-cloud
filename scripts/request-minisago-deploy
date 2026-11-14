@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Use the bounded host socket over SSH, with the same protocol as local T3."""
+import re
+import socket
+import sys
+
+if len(sys.argv) != 3 or sys.argv[1] not in ("deploy", "status") or not re.fullmatch(r"[0-9a-f]{40}", sys.argv[2]):
+    sys.exit("Usage: request-minisago-deploy <deploy|status> <full SHA>")
+with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+    client.settimeout(40)
+    client.connect("/run/sago-cloud/minisago-deploy.sock")
+    client.sendall(f"{sys.argv[1]} {sys.argv[2]}\n".encode())
+    response = bytearray()
+    while b"\n" not in response:
+        chunk = client.recv(4096)
+        if not chunk:
+            sys.exit("Deployment socket closed silently")
+        response.extend(chunk)
+        if len(response) > 4096:
+            sys.exit("Deployment socket returned too much data")
+    print(response.split(b"\n", 1)[0].decode())

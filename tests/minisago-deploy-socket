@@ -19,6 +19,12 @@ export PATH="$temporary/bin:$PATH"
 export FAKE_IMAGE_EVENTS="$temporary/image-events"
 export FAKE_IMAGE_MISSING="$temporary/missing-image"
 export MINISAGO_IMAGE_RETRY_SECONDS=0
+export FAKE_MAIN=0123456789abcdef0123456789abcdef01234567
+cat >"$temporary/bin/git" <<'SCRIPT'
+#!/usr/bin/env bash
+printf '%s\trefs/heads/main\n' "$FAKE_MAIN"
+SCRIPT
+chmod +x "$temporary/bin/git"
 cat >"$temporary/bin/timeout" <<'SCRIPT'
 #!/usr/bin/env bash
 shift
@@ -44,6 +50,7 @@ cat >"$operations/scripts/deploy-minisago" <<'SCRIPT'
 set -euo pipefail
 printf '%s %s\n' "$BOT_CORE_IMAGE_TAG" "$MINISAGO_WORKER_IMAGE_TAG"
 printf 'deploy\n' >>"$FAKE_IMAGE_EVENTS"
+if [[ "${FAKE_HEALTH_FAILURE:-}" == true ]]; then exit 17; fi
 SCRIPT
 chmod +x "$operations/scripts/deploy-minisago"
 
@@ -69,14 +76,16 @@ grep -Fq "sha-$commit sha-$commit" "$state/minisago-deploy/$commit.log"
 [[ "$(tail -1 "$FAKE_IMAGE_EVENTS")" == deploy ]]
 
 # Publication timeouts and download failures must never restart either service.
-for failure in missing pull; do
+for failure in missing pull health; do
   : >"$FAKE_IMAGE_EVENTS"
   if [[ "$failure" == missing ]]; then
     printf 'permanent\n' >"$FAKE_IMAGE_MISSING"
     export FAKE_PULL_FAILURE=false
-  else
+  elif [[ "$failure" == pull ]]; then
     rm "$FAKE_IMAGE_MISSING"
     export FAKE_PULL_FAILURE=true
+  else
+    export FAKE_PULL_FAILURE=false FAKE_HEALTH_FAILURE=true
   fi
   if printf 'deploy %s %s\n' "$commit" "$channel_id" |
     OPERATIONS_ROOT="$operations" STATE_ROOT="$state" \
@@ -87,16 +96,38 @@ for failure in missing pull; do
   fi
   [[ "$(cat "$temporary/response")" == "accepted $commit" ]]
   grep -Fq '"status":"failed"' "$state/minisago-deploy/latest.json"
-  if grep -Fqx deploy "$FAKE_IMAGE_EVENTS"; then
+  if [[ "$failure" != health ]] && grep -Fqx deploy "$FAKE_IMAGE_EVENTS"; then
     printf 'services restarted after %s failure\n' "$failure" >&2
     exit 1
   fi
 done
 
-if printf 'deploy main invalid\n' | "$handler" | grep -Fq '^accepted '; then
-  printf 'invalid deployment request was accepted\n' >&2
-  exit 1
+# Queries read the requested job, including failures, without taking a deploy lock.
+response="$(printf 'status %s\n' "$commit" | STATE_ROOT="$state" MINISAGO_DEPLOY_FLOCK_COMMAND=false "$handler")"
+[[ "$response" == "$(cat "$state/minisago-deploy/$commit.json")" ]]
+grep -Fq '"exitCode":17' <<<"$response"
+[[ "$(printf 'status %040d\n' 1 | STATE_ROOT="$state" "$handler")" == unknown* ]]
+
+if printf 'deploy %s\n' "$commit" | STATE_ROOT="$state" MINISAGO_DEPLOY_FLOCK_COMMAND=false "$handler" >"$temporary/response"; then
+  echo 'overlapping deployment was accepted' >&2; exit 1
 fi
+grep -Fqx 'busy deployment-in-progress' "$temporary/response"
+
+export FAKE_HEALTH_FAILURE=false
+response="$(printf 'deploy %s\n' "$commit" | OPERATIONS_ROOT="$operations" STATE_ROOT="$state" MINISAGO_DEPLOY_FLOCK_COMMAND=true "$handler")"
+[[ "$response" == "accepted $commit" ]]
+if grep -Fq channelId "$state/minisago-deploy/$commit.json"; then exit 1; fi
+
+for request in 'deploy main' "deploy $commit invalid" "status $commit $channel_id" "shell $commit" "deploy $commit $channel_id extra"; do
+  if printf '%s\n' "$request" | STATE_ROOT="$state" "$handler" >"$temporary/response"; then
+    printf 'invalid request was accepted: %s\n' "$request" >&2; exit 1
+  fi
+  grep -Fqx 'denied invalid-request' "$temporary/response"
+done
+if printf 'deploy %040d\n' 1 | STATE_ROOT="$state" MINISAGO_DEPLOY_FLOCK_COMMAND=true "$handler" >"$temporary/response"; then
+  echo 'unmerged commit was accepted' >&2; exit 1
+fi
+grep -Fqx 'denied commit-is-not-origin-main' "$temporary/response"
 
 grep -Fqx 'ListenStream=/run/sago-cloud/minisago-deploy.sock' "$socket_unit"
 grep -Fqx 'SocketMode=0660' "$socket_unit"

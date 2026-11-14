@@ -26,5 +26,7 @@ for required_key in \
   fi
 done
 
-compose_pull bot-core
-compose_up bot-core
+if [[ "${MINISAGO_IMAGES_PREPULLED:-}" != 1 ]]; then
+  compose_pull bot-core
+fi
+compose_up bot-core --wait --wait-timeout 180

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+temporary="$(mktemp -d)"
+trap 'rm -rf -- "$temporary"' EXIT
+mkdir -p "$temporary/bin" "$temporary/secrets"
+export PATH="$temporary/bin:$PATH" FAKE_EVENTS="$temporary/events" SECRETS_ROOT="$temporary/secrets"
+printf 'DISCORD_BOT_TOKEN=test\nMINISAGO_CHATBOT_OWNER_USER_ID=test\nMEDIA_ACCESS_NOTIFICATION_SECRET=test\n' >"$SECRETS_ROOT/bot-core.env"
+cat >"$temporary/bin/sudo" <<'SCRIPT'
+#!/usr/bin/env bash
+shift
+case "$1" in
+  install|apparmor_parser) exit 0 ;;
+  *) exec "$@" ;;
+esac
+SCRIPT
+cat >"$temporary/bin/findmnt" <<'SCRIPT'
+#!/usr/bin/env bash
+printf '/dev/loop7\n'
+SCRIPT
+cat >"$temporary/bin/docker" <<'SCRIPT'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"$FAKE_EVENTS"
+if [[ "$*" == *' up '* ]]; then
+  [[ "$*" == *'--wait --wait-timeout 180'* ]] || exit 99
+  if [[ "${FAKE_HEALTH_FAILURE:-}" == 1 ]]; then exit 17; fi
+fi
+SCRIPT
+chmod +x "$temporary/bin/"*
+MINISAGO_IMAGES_PREPULLED=1 "$root/scripts/deploy-minisago"
+[[ "$(grep -c ' up ' "$FAKE_EVENTS")" == 2 ]]
+if grep -q ' pull' "$FAKE_EVENTS"; then echo 'prepulled release pulled twice' >&2; exit 1; fi
+: >"$FAKE_EVENTS"
+if MINISAGO_IMAGES_PREPULLED=1 FAKE_HEALTH_FAILURE=1 "$root/scripts/deploy-minisago"; then
+  echo 'unhealthy release reported success' >&2; exit 1
+fi
+# Core failure stops the release before replacing the worker.
+[[ "$(grep -c ' up ' "$FAKE_EVENTS")" == 1 ]]
+printf 'MiniSago release requires healthy core and worker stacks\n'
