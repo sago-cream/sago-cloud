@@ -9,5 +9,7 @@ sudo -n apparmor_parser -r /etc/apparmor.d/minisago-worker
 sudo -n install -d -m 0700 /var/lib/minisago-sandbox
 
 require_media_mount
-compose_pull minisago-worker
-compose_up minisago-worker
+if [[ "${MINISAGO_IMAGES_PREPULLED:-}" != 1 ]]; then
+  compose_pull minisago-worker
+fi
+compose_up minisago-worker --wait --wait-timeout 180

@@ -1,6 +1,9 @@
 # Sago Cloud
 
 Infrastructure and deployment tooling for a shared Oracle ARM64 host.
+
+MiniSago deploys immutable core and worker images through one host job with
+health verification and queryable status. T3 coding sessions remain running.
 Applications run as independent Docker Compose stacks behind Caddy and a
 Cloudflare Tunnel.
 

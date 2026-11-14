@@ -23,8 +23,6 @@ grep -Fq 'pivot_root,' "$apparmor"
 grep -Fq 'deny network alg,' "$apparmor"
 grep -Fq 'apparmor_parser -r' "$deploy"
 grep -Fq 'install -d -m 0700 /var/lib/minisago-sandbox' "$deploy"
-grep -Fq 'MINISAGO_DEPLOY_STATUS_FILE: /run/sago-cloud/minisago-deploy/latest.json' "$bot_compose"
-grep -Fq '/srv/sago-cloud/state/minisago-deploy:/run/sago-cloud/minisago-deploy:ro' "$bot_compose"
 
 python3 - "$seccomp" <<'PY'
 import json

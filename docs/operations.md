@@ -100,8 +100,9 @@ requester's roles are checked; replies appear in the invoking channel even
 when other channel members lack those roles.
 
 Deploy the merged MiniSago change only after its core and worker images pass.
-Use MiniSago's `bun run deploy` from clean `main` matching `origin/main`; the
-existing deployment helper updates core, Oracle worker, and Python sandbox.
+Use MiniSago's `bun run deploy --commit <full SHA>` from any worktree. The
+commit must match current `origin/main`; the host updates core, chat worker,
+and Python sandbox together.
 The worker image supplies pypdf, python-docx, and openpyxl for PDF and Office
 reads. Do not fast-forward or reset a dirty operations checkout as part of a
 secret-only change. If images are already current and only the env changed,
@@ -154,16 +155,26 @@ rather than the host's `ubuntu` group. Rerun the installer after updating the
 socket unit; it updates the active socket's permissions without replacing the
 inode mounted into the worker.
 
-The MiniSago deployment socket accepts one immutable commit from the Oracle
-worker, acknowledges it before the worker restarts, and deploys the matching
-core and worker image tags as a socket-activated service. The host waits up to
-ten minutes for both commit-tagged images to be published, then downloads both
-before replacing either service. Missing images or pull failures leave the
-running release untouched and report failure to the thread. The request also
-carries the originating Discord thread ID so the bot can report the terminal
-result after restart. Requests cannot supply a command, path, image name, or
-deployment target. Status and logs are stored under
-`/srv/sago-cloud/state/minisago-deploy`.
+The MiniSago deployment socket accepts `deploy <full SHA>` and
+`status <full SHA>`. The host verifies that the requested commit is current
+MiniSago `main`, serializes deployments, and acknowledges the host job before
+replacing containers. It waits up to ten minutes for both immutable images and
+downloads both before replacing either service. Missing images or pull failures
+leave the running release untouched. Core and worker Compose stacks must pass
+health checks within 180 seconds each before status becomes `complete`.
+
+T3 stays running and reads the job's status, then reports through its ordinary
+Discord relay. The protocol needs no Discord identity. Older clients may still
+supply a channel ID during migration. Status and logs are stored per commit in
+`/srv/sago-cloud/state/minisago-deploy/<SHA>.json` and `<SHA>.log`. Queries do not
+start or retry work. SSH callers use `scripts/request-minisago-deploy deploy|status
+<SHA>`, which connects to the same socket. Requests cannot supply a command,
+path, image name, or deployment target.
+
+Update the host handler with `scripts/install-minisago-deploy-socket` before
+using the new client. This preserves the socket inode mounted in T3. Apply the
+bot Compose changes while preserving any host-local voice or CCXP additions.
+T3 itself requires no replacement.
 
 Container logs rotate at 10 MB with three files retained per service.
 The weekly Docker cleanup removes only unused images and build cache older than
