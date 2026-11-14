@@ -20,6 +20,9 @@ fi
 "${SUDO[@]}" install -o root -g root -m 0644 \
   "$OPERATIONS_ROOT/systemd/sago-cloud-minisago-deploy@.service" \
   /etc/systemd/system/sago-cloud-minisago-deploy@.service
+# Socket permissions restrict clients; the parent must be traversable by the
+# ubuntu SSH client as well as bind-mounted T3 clients.
+"${SUDO[@]}" install -d -o root -g root -m 0755 /run/sago-cloud
 "${SUDO[@]}" systemctl daemon-reload
 "${SUDO[@]}" systemctl enable --now sago-cloud-minisago-deploy.socket
 # Apply permissions to an already-active socket without replacing the inode

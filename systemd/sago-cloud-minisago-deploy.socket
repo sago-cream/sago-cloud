@@ -4,7 +4,7 @@ Description=Accept bounded MiniSago deployment requests
 [Socket]
 ListenStream=/run/sago-cloud/minisago-deploy.sock
 Accept=yes
-DirectoryMode=0750
+DirectoryMode=0755
 SocketMode=0660
 SocketUser=ubuntu
 # The oven/bun worker runs with GID 1000; the host ubuntu GID may differ.

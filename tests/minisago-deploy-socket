@@ -130,6 +130,8 @@ fi
 grep -Fqx 'denied commit-is-not-origin-main' "$temporary/response"
 
 grep -Fqx 'ListenStream=/run/sago-cloud/minisago-deploy.sock' "$socket_unit"
+grep -Fqx 'DirectoryMode=0755' "$socket_unit"
+grep -Fq 'install -d -o root -g root -m 0755 /run/sago-cloud' "$installer"
 grep -Fqx 'SocketMode=0660' "$socket_unit"
 grep -Fqx 'SocketGroup=1000' "$socket_unit"
 grep -Fq 'chgrp 1000 /run/sago-cloud/minisago-deploy.sock' "$installer"

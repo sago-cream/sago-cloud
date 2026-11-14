@@ -151,7 +151,9 @@ The watcher finds managed containers through the
 Compose projects.
 
 The socket uses mode `0660` and group `1000`, matching the `bun` worker's GID
-rather than the host's `ubuntu` group. Rerun the installer after updating the
+rather than the host's `ubuntu` group. Its parent directory is traversable
+(mode `0755`) so the socket's `ubuntu` owner can also connect over SSH; access
+remains controlled by the socket's `0660` permissions. Rerun the installer after updating the
 socket unit; it updates the active socket's permissions without replacing the
 inode mounted into the worker.
 
