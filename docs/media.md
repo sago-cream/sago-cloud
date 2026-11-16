@@ -31,7 +31,7 @@ limit request bodies to [4.5 MB](https://vercel.com/docs/functions/limitations).
 ## Runtime boundary
 
 The `sago-media-api` stack pulls the versioned
-`ghcr.io/sago-cream/sago-media:v2.0.0` image. Sago Cloud supplies only:
+`ghcr.io/sago-cream/sago-media:v2.1.0` image. Sago Cloud supplies only:
 
 - a dedicated, bounded filesystem at `/srv/sago-media`;
 - runtime secrets and GitHub OAuth configuration;
@@ -90,7 +90,7 @@ verifies checksums and SQLite integrity, and retains 30 days on the Mac.
 ## Release and upgrade
 
 The deployment is `sago-media-api`, product commands are `sago-media-*`, and
-configuration uses `MEDIA_*`. The image is pinned to version 2.0.0, which must be
+configuration uses `MEDIA_*`. The image is pinned to version 2.1.0, which must be
 published by Sago Media before this infrastructure change is deployed.
 
 Existing installations must follow [the 2.0 migration](media-migration.md).
@@ -98,3 +98,16 @@ The migration moves the existing filesystem and SQLite state, renames secrets
 and scheduled jobs, and replaces the old Compose project. It includes a
 maintenance window and rollback procedure. There are no runtime aliases for the
 old names. Public hostnames, HTTP endpoints, and media hashes remain unchanged.
+
+## Durable upload rollout
+
+Version 2.1 stores prepared input and its SQLite job under `.service` on the
+persistent media filesystem. The API acknowledges saved input promptly, then a
+bounded worker processes it. Sago Drop 0.11.0 polls job status and verifies the
+public link before copying it and showing success.
+
+For a staged rollout, temporarily set `MEDIA_ALLOW_LEGACY_UPLOADS=1` in the
+service environment and deploy 2.1. Publish and verify Sago Drop 0.11.0, then
+set `MEDIA_ALLOW_LEGACY_UPLOADS=0` and redeploy this stack. The old endpoint
+then returns a readable update instruction before processing an upload.
+Existing credentials, share paths, Caddy routes, and the media mount remain valid.
